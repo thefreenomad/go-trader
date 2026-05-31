@@ -25,6 +25,7 @@ Data: public OHLCV via ccxt (BinanceUS), cached in `shared_tools/trading_bot.db`
 | `decision_matrix.py` | Static `f(regime, vol_tier, direction)→strategy` with train/test split | **Overfit demo.** Long book: train Sharpe 1.34 → test −0.61 (1/9 cells survive). The split bisected the cycle (bull train / bear test), conflating edge with beta. |
 | `decision_matrix_v2.py` | Same, but **beta-relative scoring + cross-asset holdout** | Removes both confounds. (Superseded by the rolling approach before full analysis.) |
 | `rolling_wf.py` | **Rolling walk-forward** (30d train / 7d test / 7d step) — the live operating loop | **Faint but real edge:** trailing-return selection at K≥5 beats *random* weekly selection by +3–4σ. But best variant (+54% / 3.3yr) loses badly to BTC hold (+236%) with −70% drawdowns. |
+| `wfo.py` | Does weekly **walk-forward parameter optimization** add OOS value? | **No — it overfits.** WFO weekly Sharpe (−0.073) beats fixed defaults (−0.087) but *loses to random param selection* (−0.058). Trailing-best params look great in-sample, deliver ~zero OOS. Short-window param tuning is a curve-fit trap; use fixed defaults. |
 
 Results CSVs are in `results/`.
 
@@ -49,8 +50,9 @@ Results CSVs are in `results/`.
 3. **Cost realism** — no funding, flat slippage. At scale, costs decide the outcome.
 4. **Risk layer** — no vol-targeting / correlation-aware sizing / drawdown control
    (hence −70% DD).
-5. **Param optimization** — never tested; must be **walk-forward** (optimize on trailing
-   window, lock, trade next) — *current next step*.
+5. **Param optimization** — TESTED (`wfo.py`): weekly walk-forward param tuning **overfits**
+   (loses to random params OOS). **Dropped** from the pipeline — use fixed defaults, or only
+   long-window/robust optimization. Not a short-cadence step.
 6. **Anti-overfit gate** — a large-universe scan will surface spurious winners every cycle;
    deploy only configs that beat their null/random baseline out-of-sample. This gate is the
    backbone that keeps the autonomous system from becoming an automated curve-fit.
