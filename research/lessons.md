@@ -104,6 +104,27 @@ numbers — those live in `README.md`). Append as we clarify more.
     threshold); only the *state choice* was hindsight, and it has economic backing (momentum
     crash). The gate that looked *best* in-sample (breadth) died; the one that looked merely
     *good* (weak-bear) survived.
-27. **The validated edge is MODEST.** Net of funding, the deployable strategy is ~0.85 Sharpe
-    market-neutral (not the 1.8–3.2 the in-sample suggested). Real, beats random,
-    reversal-confirmed — but modest. In-sample numbers ran ~2x optimistic; the truth is ~0.8.
+27. **The validated edge is real; magnitude uncertain.** Step 3 first put it at ~0.85 Sharpe,
+    but that was deflated by a funding-model error (#28). Corrected (HL-native, signed funding,
+    real slippage) it's stronger but inflated by a clean universe (#30). Honest estimate:
+    ~1.0–1.8 market-neutral, good HL capacity. Real, beats random, reversal-confirmed.
+
+## Deployability (Hyperliquid-native — corrections)
+
+28. **Funding on a perp L/S book is SIGNED (longs pay, shorts RECEIVE).** Step 3's
+    validate.py modeled funding one-sided on the long leg only → over-penalized by ~the full
+    rate and deflated the Sharpe (the "modest 0.85" was partly a funding-model error). Correct
+    signed treatment → ~0 net for a balanced book; the only real cost is the *adverse
+    winner-vs-loser funding spread* (modest). Real HL funding confirms ~0 net effect.
+29. **Execution-venue liquidity is decisive for capacity — model the venue you'll trade.**
+    BinanceUS volumes ($2M BTC) falsely showed the edge dying at $50k AUM; real Hyperliquid
+    volumes ($~1B BTC) show capacity to ~$20M with small slippage. Same strategy, opposite
+    conclusion, purely from the liquidity data source.
+30. **Beware universe-driven Sharpe inflation.** A clean large-cap-only HL universe (top-25 by
+    HL volume) gave in-sample Sharpe ~2.78 vs ~0.9 on the broader 57-coin universe — likely
+    sample-specific (those majors trended cleanly this cycle). Combined with the usual ~2x
+    in-sample optimism, the realistic deployable edge is ~1.0–1.8, not 2.78. Don't anchor on
+    the rosiest universe.
+31. **Negative controls verify the engine, not just the edge.** reversal (flip the ranking) →
+    Sharpe −3.16 (perfect inverse); random rank → ~0. Run these whenever a result looks too
+    good — they distinguish real signal from a look-ahead bug.
