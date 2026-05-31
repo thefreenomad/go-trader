@@ -29,6 +29,7 @@ Data: public OHLCV via ccxt (BinanceUS), cached in `shared_tools/trading_bot.db`
 | `universe.py` | Build expanded liquid universe (~58 coins, 4h, 2023→now) | Vol spreads cleanly (BTC 46% → small-caps 200%+); 38 full-history + 20 late-listers. Survivorship-biased. |
 | `xsmom.py` | Cross-sectional momentum (v1, 37 coins, equal-weight) | **First real edge.** Beats random at every lookback (12w: +49% / Sharpe 0.52 vs random −17%); the reversal mirror is strongly negative, confirming directional signal. Market-neutral, modest Sharpe, still −57% DD (needs risk layer). "Pick the best coins" IS the edge — ranking across assets, not single-asset strategies. |
 | `xsmom_v2.py` | **XS-momentum + breadth fix + risk layer** | **Best result.** 57 coins point-in-time; 8w lookback, inverse-vol + vol-targeting → +101% / **Sharpe 0.86** / −32% DD / **BTC-corr 0.18**. Vol-target halved drawdowns while raising Sharpe; beats random (−23%) by a chasm. Market-neutral, leverable, near-uncorrelated to BTC. Short-side realism (funding/borrow) still to address. |
+| `xsmom_robust.py` | **Robustness lock** — sub-period (bull/bear), cost, quantile, skip, blend, rebalance-freq | **Passes the acid test.** Locked config **8w / inverse-vol / vol-target / BIWEEKLY / q20 / no-skip**: Sharpe **1.72 bull, 1.00 bear**, −14% DD, cost-robust to 40bps. Sub-period split CAUGHT two bull-overfit "improvements" (multi-horizon blend and 12w lookback go negative in the bear). Intermediate lookback required. |
 
 Results CSVs are in `results/`.
 
@@ -42,8 +43,9 @@ Results CSVs are in `results/`.
   decisively. "Pick the best coins" *is* the edge — exactly the project thesis.
 - The **regime gate** remains a useful loss-filter for the single-asset/directional path.
 - This is now a real, harvestable, near-uncorrelated factor — investable as a diversifying,
-  leverable sleeve. Remaining work is **deployability**: short-side realism (funding/borrow),
-  robustness lock, and the autonomous pipeline.
+  leverable sleeve. Robustness LOCKED (`xsmom_robust.py`): 8w / inverse-vol / vol-target / biweekly is all-weather
+  (Sharpe 1.72 bull, 1.00 bear, −14% DD, cost-robust); blend/long lookbacks are bull-overfit and were rejected.
+  Remaining work is **deployability**: short-side realism (funding/borrow) and the autonomous pipeline.
 
 ## Where we're lacking (roadmap)
 
