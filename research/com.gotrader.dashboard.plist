@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.gotrader.dashboard</string>
+  <key>WorkingDirectory</key><string>/Users/tony/Documents/go-trader</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/tony/Documents/go-trader/.venv/bin/python</string>
+    <string>research/dashboard_app.py</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict><key>PYTHONPATH</key><string>/Users/tony/Documents/go-trader</string></dict>
+  <key>KeepAlive</key><true/>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/Users/tony/Documents/go-trader/docker-data/dashboard.log</string>
+  <key>StandardErrorPath</key><string>/Users/tony/Documents/go-trader/docker-data/dashboard.log</string>
+</dict></plist>

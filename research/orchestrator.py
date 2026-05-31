@@ -123,6 +123,17 @@ def main():
         os.makedirs(os.path.dirname(STATE), exist_ok=True)
         json.dump(new_state, open(STATE, "w"), indent=2)
         print(f"\nstate persisted -> {STATE}")
+        # log a rebalance event (dashboard marks these on the equity curve)
+        import csv as _csv
+        from datetime import datetime as _dt, timezone as _tz
+        EV = "research/results/rebalance_events.csv"
+        _new = not os.path.exists(EV)
+        with open(EV, "a") as _f:
+            if _new:
+                _f.write("time,n_positions,gross,note\n")
+            _g = sum(t["notional"] for t in r["target"])
+            _f.write(f"{_dt.now(_tz.utc).isoformat()},{len(r['target'])},{_g:.0f},"
+                     f"opens={len(opens)} closes={len(closes)} holds={len(holds)}\n")
     else:
         print("\n(dry-run: no go-trader commands executed, state unchanged. Add --execute to apply.)")
 
