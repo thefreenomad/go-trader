@@ -34,14 +34,16 @@ Results CSVs are in `results/`.
 
 ## Where the evidence leaves us
 
-- The individual strategies have **no standalone alpha**; they capture market beta inefficiently.
-- The **regime gate is the one genuinely value-adding feature** (loss reduction).
-- There **is** a small, statistically-real short-term *persistence* edge (recent winners
-  keep winning ~1 week out: beats random by ~4σ), best harvested **diversified** (K=10 > K=1).
-- It is **too weak to beat holding BTC** and carries severe drawdowns. As a standalone
-  money-maker it fails; its only plausible value is as a risk-managed, uncorrelated sleeve.
-- Every honest benchmark (cash, naive-short, random, BTC-hold) shrinks the edge to
-  "real but not enough."
+- Individual **single-asset** strategies have **no standalone alpha**; they capture market
+  beta inefficiently. Weekly **param optimization overfits** (worse than random).
+- The **edge is cross-sectional**: ranking the *universe* and trading the best/worst coins.
+  Cross-sectional momentum (`xsmom_v2.py`) with inverse-vol weighting + vol-targeting reaches
+  **Sharpe ~0.86, −32% DD, ~0.18 BTC-correlation**, market-neutral, beating a random control
+  decisively. "Pick the best coins" *is* the edge — exactly the project thesis.
+- The **regime gate** remains a useful loss-filter for the single-asset/directional path.
+- This is now a real, harvestable, near-uncorrelated factor — investable as a diversifying,
+  leverable sleeve. Remaining work is **deployability**: short-side realism (funding/borrow),
+  robustness lock, and the autonomous pipeline.
 
 ## Where we're lacking (roadmap)
 
