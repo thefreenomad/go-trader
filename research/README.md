@@ -26,6 +26,8 @@ Data: public OHLCV via ccxt (BinanceUS), cached in `shared_tools/trading_bot.db`
 | `decision_matrix_v2.py` | Same, but **beta-relative scoring + cross-asset holdout** | Removes both confounds. (Superseded by the rolling approach before full analysis.) |
 | `rolling_wf.py` | **Rolling walk-forward** (30d train / 7d test / 7d step) — the live operating loop | **Faint but real edge:** trailing-return selection at K≥5 beats *random* weekly selection by +3–4σ. But best variant (+54% / 3.3yr) loses badly to BTC hold (+236%) with −70% drawdowns. |
 | `wfo.py` | Does weekly **walk-forward parameter optimization** add OOS value? | **No — it overfits.** WFO weekly Sharpe (−0.073) beats fixed defaults (−0.087) but *loses to random param selection* (−0.058). Trailing-best params look great in-sample, deliver ~zero OOS. Short-window param tuning is a curve-fit trap; use fixed defaults. |
+| `universe.py` | Build expanded liquid universe (~58 coins, 4h, 2023→now) | Vol spreads cleanly (BTC 46% → small-caps 200%+); 38 full-history + 20 late-listers. Survivorship-biased. |
+| `xsmom.py` | **Cross-sectional momentum** — rank universe, long winners/short losers weekly | **First real edge.** Beats random at every lookback (12w: +49% / Sharpe 0.52 vs random −17%); the reversal mirror is strongly negative, confirming directional signal. Market-neutral, modest Sharpe, still −57% DD (needs risk layer). "Pick the best coins" IS the edge — ranking across assets, not single-asset strategies. |
 
 Results CSVs are in `results/`.
 
