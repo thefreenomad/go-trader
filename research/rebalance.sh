@@ -10,7 +10,7 @@ set -euo pipefail
 REPO="/Users/tony/Documents/go-trader"
 DOCKER="${DOCKER_BIN:-/usr/local/bin/docker}"
 CONTAINER="go-trader-paper"
-AUM="${XS_AUM:-100000}"
+AUM="${XS_AUM:-10000}"     # $10k AUM -> ~$20k gross (2x, market-neutral); grow over time
 
 cd "$REPO"
 ts() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
