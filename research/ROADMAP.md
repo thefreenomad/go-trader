@@ -21,8 +21,9 @@ regime engine (`shared_tools/regime.py` composite 7-state classifier + live
 - [x] **>>> CHECKPOINT: PASSED.** Regime gate yields sensible, economically-motivated
       improvement (validates strong/weak-bear taxonomy). Continue.
 - [ ] **3. Build & re-validate** the regime-conditioned deployable strategy from only
-      what step 2 proved (likely: deployable 4w XS-mom, off in `trending_down_choppy` (weak bear), exposure
-      scaled by trend cleanliness). Full gauntlet: bull/bear + rolling dist + vs
+      what step 2 proved. REGIME GATE = BREADTH/dispersion from the universe (NOT BTC alone):
+      breadth high -> Sharpe 3+, mid -> -1.8, low -> ~0. Gate to avoid the mushy middle; set
+      breadth thresholds CAUSALLY (rolling quantiles). Also: deployable 4w XS-mom. Full gauntlet: bull/bear + rolling dist + vs
       always-on + vs random + net of funding. Keep degrees of freedom small.
 - [ ] **4. Config-writer pipeline.** Cron: rank → regime-gate → significance gate →
       write `scheduler/config.json` (per-coin entries w/ `allowed_regimes`) → SIGHUP.
