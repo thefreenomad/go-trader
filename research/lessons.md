@@ -148,3 +148,15 @@ numbers — those live in `README.md`). Append as we clarify more.
     costs+funding: full-period 1.12, recent-9-months 1.11. The expanded universe + caps that
     deflated the inflated 2.78 produced an honest number that is NOT bull-loaded — it holds in
     the recent window. ~1.1 market-neutral is the realistic deployment expectation.
+
+## Pre-deploy smoke test (expanded HL universe, past month)
+
+36. **Hyperliquid's broad universe includes tokenized EQUITIES (XYZ-MU/AMD/INTC/PLTR/HOOD...).**
+    "Expand the HL universe" naively pulls in stock perps. Mixed crypto+equity book gave a
+    flattering +20%/Sharpe 4.3 over the past month -- but that was a semiconductor run, NOT the
+    crypto edge. Crypto-only over the same month: +6%/Sharpe 1.60 (in our validated ~1.1-1.8
+    range). Deploy crypto-only; tokenized-equity cross-sectional momentum is a SEPARATE future
+    sleeve to validate independently -- don't rank DOGE against Intel without validation.
+37. **Liquid crypto on HL is only ~30 perps (>$3M/day).** Crypto-only breadth is inherently
+    limited on HL; the big universe expansion HL offers is equities. Breadth vs asset-class
+    purity is a real tradeoff to decide deliberately.

@@ -1,0 +1,21 @@
+# go-trader paper instance. `docker compose up -d --build` to run the stable
+# paper version; keep developing in the working tree and redeploy when ready.
+services:
+  go-trader:
+    build: .
+    image: go-trader:paper
+    container_name: go-trader-paper
+    ports:
+      - "8099:8099"            # dashboard + /status + /health (loopback on host)
+    volumes:
+      - ./docker-data:/app/data   # persist state.db + logs across restarts
+    environment:
+      - GO_TRADER_ALLOW_MISSING_STATE=1
+      # paper needs no secrets; add DISCORD_BOT_TOKEN / HYPERLIQUID_SECRET_KEY here for live
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8099/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s

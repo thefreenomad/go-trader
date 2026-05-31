@@ -1,0 +1,14 @@
+.git
+.venv
+docker-data
+**/__pycache__
+**/*.pyc
+*.db
+*.db-wal
+*.db-shm
+shared_tools/trading_bot.db
+notebooks
+archive
+docs
+backtest
+research/results/*.csv
