@@ -140,3 +140,11 @@ numbers — those live in `README.md`). Append as we clarify more.
     more trustworthy, more robust edge. Per-name caps only bite once the universe is large.
 34. **Realistic deployable edge: ~1.5-1.9 Sharpe market-neutral** (expanded HL universe, net of
     HL costs, beats random +4σ). Robust, not spectacular.
+
+## Paper-shadow (Step 5)
+
+35. **The deployable config gives a CONSISTENT ~1.1 Sharpe (recent ≈ full).** Paper-shadowing
+    the exact deployable engine (expanded HL universe + caps + weak-bear gate) net of real HL
+    costs+funding: full-period 1.12, recent-9-months 1.11. The expanded universe + caps that
+    deflated the inflated 2.78 produced an honest number that is NOT bull-loaded — it holds in
+    the recent window. ~1.1 market-neutral is the realistic deployment expectation.
