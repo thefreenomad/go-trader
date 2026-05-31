@@ -36,7 +36,7 @@ Data: public OHLCV via ccxt (BinanceUS), cached in `shared_tools/trading_bot.db`
 | `regime_market.py` | Which market-regime **gate** is best (BTC vs universe vs breadth)? | **Breadth wins.** Universe-index composite ≈ BTC (same classifier). But a BREADTH gate (% of coins with +4w momentum) discriminates far better: high breadth → Sharpe **+3.2**, mid (transition) → **−1.8**, low → ~0. XS-momentum thrives on broad dispersion, dies in the mushy middle. Gate on breadth, set thresholds causally. |
 | `regime_perasset.py` | Should each asset's OWN regime gate whether we trade it? | **No.** Per-asset regime gating REDUCES the book (full 1.08→0.65-0.85) — it filters a *relative* signal by *absolute* regime, discarding valid cross-sectional winners. The market **breadth** gate is the lever (bear +0.73). Two questions: rank = "trade this coin?", universe breadth = "is the factor working?". Gate at the SELECTION layer, NOT per-asset (opposite of go-trader's native allowed_regimes → set those loose). |
 
-Results CSVs are in `results/`.
+Results CSVs are in `results/`. Distilled transferable principles: **`lessons.md`**.
 
 ## Where the evidence leaves us
 
