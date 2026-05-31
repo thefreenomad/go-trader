@@ -79,7 +79,8 @@ def compute_target(aum, lev=1.0, nliq=NLIQ):
             w = _cap_weights([1.0 / vol[c] for c in leg])
             for c, wi in zip(leg, w):
                 target.append(dict(coin=c, side=side, weight=float(wi),
-                                   notional=round(aum * lev * wi, 2), mom=float(mom[c])))
+                                   notional=round(aum * lev * wi, 2), mom=float(mom[c]),
+                                   price=round(float(P.iloc[-1][c]), 6)))
     return dict(asof=str(asof), regime=regime, gated=gated, universe_coins=universe,
                 universe=len(universe), eligible=len(elig), target=target)
 

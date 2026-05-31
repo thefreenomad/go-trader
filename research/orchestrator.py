@@ -38,12 +38,12 @@ def diff(current, target, gated):
     for coin, t in ({} if gated else tgt).items():
         cur = current.get(coin)
         if cur is None or cur["side"] != t["side"]:
-            opens.append((coin, t["side"], t["notional"], "new" if cur is None else "flip"))
+            opens.append((coin, t["side"], t["notional"], t.get("price", 0), "new" if cur is None else "flip"))
         else:
             drift = abs(t["notional"] - cur["notional"]) / max(cur["notional"], 1)
             if drift > RESIZE_TOL:
                 closes.append((coin, cur["side"], f"resize {drift*100:.0f}%"))
-                opens.append((coin, t["side"], t["notional"], "resize"))
+                opens.append((coin, t["side"], t["notional"], t.get("price", 0), "resize"))
             else:
                 holds.append((coin, t["side"], t["notional"]))
     return closes, opens, holds
@@ -80,6 +80,7 @@ def main():
     ap.add_argument("--aum", type=float, default=100_000)
     ap.add_argument("--lev", type=float, default=1.0)
     ap.add_argument("--execute", action="store_true", help="actually drive go-trader (default: dry-run)")
+    ap.add_argument("--paper", action="store_true", help="paper: record-only opens at current price")
     ap.add_argument("--gotrader", default="./go-trader")
     ap.add_argument("--emit-config", action="store_true")
     a = ap.parse_args()
@@ -104,10 +105,16 @@ def main():
         print(f"  hl-xs-{coin.lower():6s} ({side:5s})  [{why}]")
         run_cmd(["manual-close", f"hl-xs-{coin.lower()}"], a.execute, a.gotrader)
     print("OPENS:")
-    for coin, side, notion, why in opens:
-        print(f"  hl-xs-{coin.lower():6s} ({side:5s}) ${notion:>10,.0f}  [{why}]")
-        run_cmd(["manual-open", f"hl-xs-{coin.lower()}", "--side", side, "--notional", f"{notion:.0f}"],
-                a.execute, a.gotrader)
+    for coin, side, notion, price, why in opens:
+        sid = f"hl-xs-{coin.lower()}"
+        if a.paper:
+            size = notion / price if price else 0.0
+            cmd = ["manual-open", sid, "--side", side, "--size", f"{size:.6f}",
+                   "--record-only", "--fill-price", f"{price}"]
+        else:
+            cmd = ["manual-open", sid, "--side", side, "--notional", f"{notion:.0f}"]
+        print(f"  {sid:14s} ({side:5s}) ${notion:>10,.0f}  [{why}]")
+        run_cmd(cmd, a.execute, a.gotrader)
     if holds:
         print(f"HOLDS (within {RESIZE_TOL*100:.0f}% tol): " + ", ".join(f"{c}/{s}" for c, s, _ in holds))
 
