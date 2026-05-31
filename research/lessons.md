@@ -88,3 +88,21 @@ numbers — those live in `README.md`). Append as we clarify more.
 24. **Security:** the repo is clean — no data exfiltration in code, agent instructions, or
     docs. The only thing to manage is the opt-in **auto-update** path (supply-chain trust);
     keep it off and review diffs.
+
+## Validation (Step 3 — the hard lessons)
+
+25. **In-sample threshold selection creates mirages; causal + random-null validation is
+    non-negotiable.** The breadth gate looked spectacular (in-sample Sharpe 3.2 in
+    high-breadth) but FAILED causally — with rolling thresholds and benchmarked against
+    sitting out *random* periods of the same rate, it scored −0.1σ vs random and was *worse*
+    than no gate (0.32 vs 0.72). Its strength was full-sample tercile thresholds. Always run
+    the same-sit-out-rate random null before believing a gate.
+26. **Fitted-threshold gates overfit; fixed-classifier gates with economic backing can hold.**
+    The composite weak-bear gate (sit out `trending_down_choppy`) modestly SURVIVED (+0.9σ vs
+    random, lifted 0.72→0.87) — because its labels come from a fixed classifier (no fitted
+    threshold); only the *state choice* was hindsight, and it has economic backing (momentum
+    crash). The gate that looked *best* in-sample (breadth) died; the one that looked merely
+    *good* (weak-bear) survived.
+27. **The validated edge is MODEST.** Net of funding, the deployable strategy is ~0.85 Sharpe
+    market-neutral (not the 1.8–3.2 the in-sample suggested). Real, beats random,
+    reversal-confirmed — but modest. In-sample numbers ran ~2x optimistic; the truth is ~0.8.
