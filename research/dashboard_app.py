@@ -15,6 +15,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 LEDGER = "research/results/live_ledger.csv"
 EVENTS = "research/results/rebalance_events.csv"
 CONTAINER = "go-trader-paper"
+DOCKER = os.environ.get("DOCKER_BIN", "/usr/local/bin/docker")   # launchd has minimal PATH
 AUM = 10000.0
 PORT = 8090
 _sc = {"t": 0.0, "d": None}
@@ -25,7 +26,7 @@ def status():
     if time.time() - _sc["t"] < 25 and _sc["d"]:
         return _sc["d"]
     try:
-        r = subprocess.run(["docker", "exec", CONTAINER, "curl", "-fsS", "http://localhost:8099/status"],
+        r = subprocess.run([DOCKER, "exec", CONTAINER, "curl", "-fsS", "http://localhost:8099/status"],
                            capture_output=True, text=True, timeout=20)
         _sc.update(t=time.time(), d=json.loads(r.stdout))
     except Exception:

@@ -9,7 +9,10 @@
     <string>research/dashboard_app.py</string>
   </array>
   <key>EnvironmentVariables</key>
-  <dict><key>PYTHONPATH</key><string>/Users/tony/Documents/go-trader</string></dict>
+  <dict>
+    <key>PYTHONPATH</key><string>/Users/tony/Documents/go-trader</string>
+    <key>PATH</key><string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
   <key>KeepAlive</key><true/>
   <key>RunAtLoad</key><true/>
   <key>StandardOutPath</key><string>/Users/tony/Documents/go-trader/docker-data/dashboard.log</string>
