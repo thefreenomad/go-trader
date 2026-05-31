@@ -27,6 +27,23 @@ def load_state(path):
     return {}
 
 
+def live_positions():
+    """Current book from the ACTUAL HL account (live/testnet ground truth), so the
+    diff reconciles against reality instead of assuming every open filled."""
+    sys.path.insert(0, "platforms/hyperliquid")
+    from adapter import HyperliquidExchangeAdapter
+    a = HyperliquidExchangeAdapter()
+    st = a._info.user_state(os.environ["HYPERLIQUID_ACCOUNT_ADDRESS"])
+    cur = {}
+    for p in st.get("assetPositions", []):
+        pp = p["position"]; szi = float(pp.get("szi", 0) or 0)
+        if szi == 0:
+            continue
+        cur[pp["coin"]] = {"side": "long" if szi > 0 else "short",
+                           "notional": abs(szi) * float(pp.get("entryPx") or 0)}
+    return cur
+
+
 def diff(current, target, gated):
     tgt = {t["coin"]: t for t in target}
     closes, opens, holds = [], [], []
@@ -88,7 +105,14 @@ def main():
         emit_config(); return
 
     r = compute_target(a.aum, a.lev)
-    current = load_state(STATE)
+    if a.paper:
+        current = load_state(STATE)
+    else:                       # live/testnet: reconcile against the real account
+        try:
+            current = live_positions()
+        except Exception as e:
+            print(f"warn: live_positions failed ({e}); falling back to state file")
+            current = load_state(STATE)
     closes, opens, holds = diff(current, r["target"], r["gated"])
 
     print(f"=== ORCHESTRATOR  (as of {r['asof']}, AUM ${a.aum:,.0f}, "

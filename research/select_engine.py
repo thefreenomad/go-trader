@@ -14,7 +14,7 @@ Signals are fetched LIVE from Hyperliquid (the venue we trade) -- same prices we
 execute against, no proxy. Universe stays crypto-only (BinanceUS-derived list
 intersected with HL; excludes HL's tokenized equities).
 """
-import sys, json, warnings
+import sys, os, json, warnings, urllib.request
 warnings.filterwarnings("ignore")
 sys.path.insert(0, "shared_tools")
 import numpy as np, pandas as pd, ccxt
@@ -26,6 +26,22 @@ def _hl_ohlcv(hl, coin, limit):
     df = pd.DataFrame(o, columns=["t", "open", "high", "low", "close", "volume"])
     df.index = pd.to_datetime(df["t"], unit="ms")
     return df
+
+
+def _testnet_universe():
+    """Coins LISTED on HL testnet with a live price -> {coin: {szd, px}}."""
+    body = json.dumps({"type": "metaAndAssetCtxs"}).encode()
+    req = urllib.request.Request("https://api.hyperliquid-testnet.xyz/info", data=body,
+                                 headers={"Content-Type": "application/json"})
+    meta, ctxs = json.loads(urllib.request.urlopen(req, timeout=15).read())
+    out = {}
+    for i, u in enumerate(meta["universe"]):
+        ctx = ctxs[i] if i < len(ctxs) else {}
+        px = ctx.get("markPx")
+        if px and float(px) > 0:
+            out[u["name"]] = {"szd": int(u["szDecimals"]), "px": float(px),
+                              "vol": float(ctx.get("dayNtlVlm", 0) or 0)}
+    return out
 
 TF = "4h"; BARS_DAY = 6; LB = 4 * 7 * BARS_DAY
 QFRAC = 0.20; NLIQ = 40; NAME_CAP = 0.25; REGIME_PERIOD = 90
@@ -53,6 +69,16 @@ def compute_target(aum, lev=1.0, nliq=NLIQ):
     syms = json.load(open("research/universe.json"))
     universe = [s.split("/")[0] for s in syms if hl_vol(s.split("/")[0]) is not None]
     universe = sorted(universe, key=lambda c: -(hl_vol(c) or 0))[:nliq]
+
+    # On testnet: keep only coins LISTED on testnet and coarse enough to size
+    # (drops e.g. BCH/UNI not on testnet, ZEC szDecimals=0 whose min size >> a slot).
+    if os.environ.get("HYPERLIQUID_TESTNET", "") == "1":
+        tn = _testnet_universe()
+        # listed on testnet + coarse-enough to size. (Some listed coins have empty
+        # testnet order books at execution time -> market orders no-fill; the
+        # orchestrator's account-reconcile retries them harmlessly next run.)
+        universe = [c for c in universe
+                    if c in tn and (10.0 ** -tn[c]["szd"]) * tn[c]["px"] <= aum * 0.10]
 
     # signal prices fetched LIVE from Hyperliquid (same venue we execute on)
     need = LB + 60; closes = {}
