@@ -63,20 +63,21 @@ numbers — those live in `README.md`). Append as we clarify more.
 
 18. **The repo's composite 7-state classifier is degenerate on 4h with default thresholds**
     (~98% trending, ranging <2%). Effectively a 4-state classifier until retuned.
-19. **Regime conditioning works and validates the strong/weak-bear taxonomy.** XS-momentum
-    dies in the **choppy/weak downtrend** (the "momentum crash" regime) and thrives in clean
-    trends (incl. clean *down*trends). Sitting out the weak-bear lifted 4w Sharpe 1.08→1.80
-    and neutralized the bear.
+19. **Regime conditioning helps modestly (validates the strong/weak-bear taxonomy).**
+    XS-momentum dies in the **choppy/weak downtrend** (the "momentum crash" regime) and
+    thrives in clean trends (incl. clean *down*trends). Sitting out the weak-bear looked like
+    1.08→1.80 *in-sample*; **causally + net of funding it's a modest 0.72→0.87 (+0.9σ vs
+    random) — see #26.** Real but small.
 20. **For a RELATIVE (cross-sectional) strategy, gate at the PORTFOLIO/SELECTION level, not
     per-asset.** Per-asset absolute-regime gating fights the relative signal — it discards
     valid cross-sectional winners (strong-vs-peers coins still in downtrends) and *reduces*
     returns (1.08 → 0.65–0.85). This is the **opposite** of go-trader's native per-asset
     `allowed_regimes`. Two questions, two signals: *rank* = "trade this coin?"; *universe
     breadth* = "is the factor working now?".
-21. **Breadth/dispersion beats BTC price-trend as the gate.** Universe breadth (% of coins
-    with positive momentum): high → Sharpe 3+, mid (transition) → −1.8, low → ~0. The
-    cross-sectional factor needs broad dispersion/leadership; it dies in the mushy middle.
-    (Set breadth thresholds **causally** for deployment — rolling quantiles, not in-sample.)
+21. **Breadth gate: in-sample mirage — DID NOT survive causal validation (see #25).** It
+    looked dominant in-sample (high breadth → Sharpe 3+, mid → −1.8) but that used full-sample
+    thresholds; causally it scored −0.1σ vs random and was *worse* than no gate. Left here as
+    a cautionary record, not a recommendation.
 
 ## Architecture
 
