@@ -8,20 +8,42 @@ so it's reachable in a browser without the container's loopback restriction.
   .venv/bin/python research/dashboard_app.py          # serve at http://localhost:8090
   .venv/bin/python research/dashboard_app.py --tick    # append one equity snapshot (cron)
 """
-import sys, os, json, time, csv, subprocess
+import sys, os, json, time, csv, subprocess, urllib.request
 from datetime import datetime, timezone
 from http.server import HTTPServer, BaseHTTPRequestHandler
 sys.path.insert(0, "shared_tools")
 import ccxt
 
+
+def _load_env(path=".env"):
+    """launchd gives the dashboard a minimal env; pull HYPERLIQUID_* from .env so
+    we can read the live account. Only the (public) account ADDRESS is needed for
+    the read-only /info query -- the secret key is never used here."""
+    if not os.path.exists(path):
+        return
+    for line in open(path):
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        k = k.strip()
+        if k.startswith("HYPERLIQUID_") and k not in os.environ:
+            os.environ[k] = v.strip().strip('"').strip("'")
+
+
+_load_env()
 LEDGER = "research/results/live_ledger.csv"
 EVENTS = "research/results/rebalance_events.csv"
+BASELINE = "research/results/baseline.json"
 CONTAINER = "go-trader-paper"
 DOCKER = os.environ.get("DOCKER_BIN", "/usr/local/bin/docker")   # launchd has minimal PATH
-AUM = 10000.0
+TESTNET = os.environ.get("HYPERLIQUID_TESTNET", "") == "1"
+HL_INFO = ("https://api.hyperliquid-testnet.xyz" if TESTNET else "https://api.hyperliquid.xyz") + "/info"
+AUM = 10000.0                          # synthetic base (paper fallback only)
 PORT = 8090
 _sc = {"t": 0.0, "d": None}
 _pc = {"t": 0.0, "px": {}}
+_ac = {"t": 0.0, "d": None}
 _hl = None
 
 
@@ -53,7 +75,54 @@ def status():
     return _sc["d"] or {}
 
 
+def live_account():
+    """Authoritative book + balance from the ACTUAL HL account (read-only /info).
+    Returns (account_value, positions) or None if no address / query fails."""
+    addr = os.environ.get("HYPERLIQUID_ACCOUNT_ADDRESS")
+    if not addr:
+        return None
+    if time.time() - _ac["t"] < 25 and _ac["d"]:
+        return _ac["d"]
+    try:
+        body = json.dumps({"type": "clearinghouseState", "user": addr}).encode()
+        req = urllib.request.Request(HL_INFO, data=body, headers={"Content-Type": "application/json"})
+        st = json.loads(urllib.request.urlopen(req, timeout=15).read())
+    except Exception:
+        return _ac["d"]
+    val = float((st.get("marginSummary") or {}).get("accountValue") or 0)
+    rows = []
+    for p in st.get("assetPositions", []):
+        pp = p["position"]; szi = float(pp.get("szi", 0) or 0)
+        if szi == 0:
+            continue
+        entry = float(pp.get("entryPx") or 0); upnl = float(pp.get("unrealizedPnl") or 0)
+        side = "long" if szi > 0 else "short"; sgn = 1 if szi > 0 else -1
+        rows.append(dict(coin=pp["coin"], side=side, qty=abs(szi), entry=entry,
+                         cur=entry + (upnl / (sgn * abs(szi)) if szi else 0),
+                         pnl=upnl, notional=abs(szi) * entry))
+    _ac.update(t=time.time(), d=(val, rows))
+    return val, rows
+
+
+def _baseline(val):
+    """First-seen account value, persisted -> total P&L = current - baseline."""
+    if os.path.exists(BASELINE):
+        try:
+            return float(json.load(open(BASELINE))["v"])
+        except Exception:
+            pass
+    os.makedirs(os.path.dirname(BASELINE), exist_ok=True)
+    json.dump({"v": val}, open(BASELINE, "w"))
+    return val
+
+
 def mark():
+    acct = live_account() if TESTNET else None
+    if acct is not None:                       # live/testnet: account is ground truth
+        val, rows = acct
+        gross = sum(r["notional"] for r in rows)
+        pnl = val - _baseline(val)             # total P&L since first snapshot (incl. realized+funding)
+        return rows, val, pnl, gross
     d = status(); spx = d.get("prices", {}) or {}; lpx = hl_prices()
     strat = d.get("strategies", [])
     if isinstance(strat, dict):
@@ -135,7 +204,7 @@ canvas{{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:1
 <h2>Equity curve — orange dots = rebalances</h2><canvas id=eq height=78></canvas>
 <h2>Positions (live mark)</h2>
 <table><tr><th>coin</th><th>side</th><th>notional</th><th>entry</th><th>current</th><th>P&amp;L</th></tr>{prows}</table>
-<p style="color:#8b949e;font-size:12px;margin-top:14px">auto-refreshes 60s · {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC · base AUM ${AUM:,.0f}</p>
+<p style="color:#8b949e;font-size:12px;margin-top:14px">auto-refreshes 60s · {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC · {'live HL testnet account' if TESTNET else f'base AUM $' + format(AUM, ',.0f')}</p>
 <script>new Chart(document.getElementById('eq'),{{type:'line',
 data:{{labels:{json.dumps(times)},datasets:[{{data:{json.dumps(eq)},borderColor:'#58a6ff',
 backgroundColor:'rgba(88,166,255,.08)',fill:true,tension:.2,borderWidth:2,
