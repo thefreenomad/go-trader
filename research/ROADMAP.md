@@ -26,8 +26,9 @@ regime engine (`shared_tools/regime.py` composite 7-state classifier + live
       breadth thresholds CAUSALLY (rolling quantiles). Also: deployable 4w XS-mom. Full gauntlet: bull/bear + rolling dist + vs
       always-on + vs random + net of funding. Keep degrees of freedom small.
 - [ ] **4. Config-writer pipeline.** Cron: rank → regime-gate → significance gate →
-      write `scheduler/config.json` (per-coin entries w/ `allowed_regimes`) → SIGHUP.
-      go-trader's live regime gate = redundant safety layer.
+      write `scheduler/config.json` (per-coin entries). Apply the BREADTH gate at the
+      SELECTION layer (deploy book or not); set per-coin `allowed_regimes` LOOSE — per-asset
+      regime gating HURTS a relative cross-sectional signal (regime_perasset.py). SIGHUP.
 - [ ] **5. Paper-shadow + significance gate** — reconcile predicted vs realized for
       weeks before any live capital.
 - [ ] **6. Refine** (iterate on the above once forward evidence accrues).
