@@ -20,6 +20,9 @@ from decimal import Decimal, ROUND_DOWN
 
 MAINNET_URL = "https://api.hyperliquid.xyz"
 TESTNET_URL = "https://api.hyperliquid-testnet.xyz"
+# Perps-only: the SDK's Info/Exchange constructors choke on testnet spot_meta
+# (spot_meta["tokens"][base] IndexError). We never trade spot, so pass empty.
+_EMPTY_SPOT_META = {"universe": [], "tokens": []}
 
 # /info `spotMeta` + `meta` rarely change (HL lists new coins on the order of
 # weeks). The SDK's Info constructor re-fetches both on every instantiation,
@@ -216,6 +219,7 @@ class HyperliquidExchangeAdapter:
         base_url = TESTNET_URL if testnet else MAINNET_URL
         self._base_url = base_url
 
+        self._perps_meta = None
         self._info = self._build_info(base_url, allow_cache=True)
         self._account_address = addr
         self._exchange = None
@@ -232,7 +236,8 @@ class HyperliquidExchangeAdapter:
                 account_addr = addr or wallet.address
                 self._account_address = account_addr
                 self._exchange = _HLExchange(
-                    wallet, base_url=base_url, account_address=account_addr
+                    wallet, base_url=base_url, account_address=account_addr,
+                    meta=self._perps_meta, spot_meta=_EMPTY_SPOT_META,
                 )
             except Exception as e:
                 raise RuntimeError(
@@ -254,17 +259,34 @@ class HyperliquidExchangeAdapter:
         cached = _load_meta_cache() if allow_cache else None
         if cached is not None:
             spot_meta, meta = cached
-            return _HLInfo(base_url=base_url, skip_ws=True, meta=meta, spot_meta=spot_meta)
+            self._perps_meta = meta
+            return _HLInfo(base_url=base_url, skip_ws=True, meta=meta, spot_meta=_EMPTY_SPOT_META)
         try:
             spot_meta, meta = _fetch_raw_meta(base_url)
             _save_meta_cache(spot_meta, meta)
-            return _HLInfo(base_url=base_url, skip_ws=True, meta=meta, spot_meta=spot_meta)
+            self._perps_meta = meta
+            return _HLInfo(base_url=base_url, skip_ws=True, meta=meta, spot_meta=_EMPTY_SPOT_META)
         except Exception as exc:
             # Last-resort fallback: let the SDK's constructor fetch fresh.
             # Costs the same 2 /info as before this change; cache write failed
             # but trading must continue.
             print(f"[WARN] hl meta fetch failed ({exc}); falling back to SDK init", file=sys.stderr)
             return _HLInfo(base_url=base_url, skip_ws=True)
+
+    def _szd_lookup(self, symbol: str):
+        """sz_decimals for a coin. The SDK keys asset_to_sz_decimals by INT asset
+        index, so resolve name->index first (older SDKs keyed by name — handled)."""
+        info = self._info
+        if info is None:
+            return None
+        szd = getattr(info, "asset_to_sz_decimals", {}) or {}
+        try:
+            idx = info.name_to_asset(symbol)
+            if idx in szd:
+                return szd[idx]
+        except Exception:
+            pass
+        return szd.get(symbol)
 
     def _sz_decimals(self, symbol: str) -> int:
         """Look up sz_decimals for ``symbol``, force-refreshing the cached
@@ -278,8 +300,9 @@ class HyperliquidExchangeAdapter:
         back. A still-missing symbol after refresh logs a warning and uses
         the legacy default 3.
         """
-        if self._info is not None and symbol in self._info.asset_to_sz_decimals:
-            return self._info.asset_to_sz_decimals[symbol]
+        v = self._szd_lookup(symbol)
+        if v is not None:
+            return v
         # Already tried to refresh for this symbol earlier in this subprocess
         # and still couldn't find it — typo or genuinely unlisted asset; the
         # cached universe will not save us. Skip the redundant /info calls.
@@ -292,8 +315,9 @@ class HyperliquidExchangeAdapter:
             print(f"[WARN] hl meta refresh failed for {symbol}: {exc}", file=sys.stderr)
             self._sz_decimals_misses.add(symbol)
             return 3
-        if self._info is not None and symbol in self._info.asset_to_sz_decimals:
-            return self._info.asset_to_sz_decimals[symbol]
+        v = self._szd_lookup(symbol)
+        if v is not None:
+            return v
         print(f"[WARN] sz_decimals not found for {symbol} after refresh, defaulting to 3", file=sys.stderr)
         self._sz_decimals_misses.add(symbol)
         return 3

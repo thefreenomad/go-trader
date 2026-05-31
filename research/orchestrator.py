@@ -107,12 +107,12 @@ def main():
     print("OPENS:")
     for coin, side, notion, price, why in opens:
         sid = f"hl-xs-{coin.lower()}"
+        size = notion / price if price else 0.0
         if a.paper:
-            size = notion / price if price else 0.0
             cmd = ["manual-open", sid, "--side", side, "--size", f"{size:.6f}",
                    "--record-only", "--fill-price", f"{price}"]
-        else:
-            cmd = ["manual-open", sid, "--side", side, "--notional", f"{notion:.0f}"]
+        else:   # live/testnet: size from engine price (Go's --notional mark fetch is unreliable)
+            cmd = ["manual-open", sid, "--side", side, "--size", f"{size:.6f}"]
         print(f"  {sid:14s} ({side:5s}) ${notion:>10,.0f}  [{why}]")
         run_cmd(cmd, a.execute, a.gotrader)
     if holds:

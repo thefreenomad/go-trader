@@ -11,6 +11,8 @@ so it's reachable in a browser without the container's loopback restriction.
 import sys, os, json, time, csv, subprocess
 from datetime import datetime, timezone
 from http.server import HTTPServer, BaseHTTPRequestHandler
+sys.path.insert(0, "shared_tools")
+import ccxt
 
 LEDGER = "research/results/live_ledger.csv"
 EVENTS = "research/results/rebalance_events.csv"
@@ -19,6 +21,23 @@ DOCKER = os.environ.get("DOCKER_BIN", "/usr/local/bin/docker")   # launchd has m
 AUM = 10000.0
 PORT = 8090
 _sc = {"t": 0.0, "d": None}
+_pc = {"t": 0.0, "px": {}}
+_hl = None
+
+
+def hl_prices():
+    """LIVE HL tickers (fresh each refresh, cached 15s) for marking."""
+    global _hl
+    if time.time() - _pc["t"] < 15 and _pc["px"]:
+        return _pc["px"]
+    try:
+        _hl = _hl or ccxt.hyperliquid({"enableRateLimit": True})
+        t = _hl.fetch_tickers()
+        _pc.update(t=time.time(), px={s.split("/")[0]: (t[s].get("last") or t[s].get("close") or t[s].get("mark"))
+                                      for s in t if s.endswith("/USDC:USDC")})
+    except Exception:
+        pass
+    return _pc["px"]
 
 
 def status():
@@ -35,7 +54,7 @@ def status():
 
 
 def mark():
-    d = status(); prices = d.get("prices", {}) or {}
+    d = status(); spx = d.get("prices", {}) or {}; lpx = hl_prices()
     strat = d.get("strategies", [])
     if isinstance(strat, dict):
         strat = list(strat.values())
@@ -43,7 +62,7 @@ def mark():
     for x in strat:
         for sym, p in (x.get("positions") or {}).items():
             side = p.get("side"); qty = p.get("quantity", 0); entry = p.get("avg_cost", 0)
-            cur = prices.get(sym) or entry
+            cur = lpx.get(sym) or spx.get(sym) or entry   # live HL ticker, fallback /status
             sgn = 1 if side == "long" else -1
             pp = sgn * qty * (cur - entry); notional = qty * entry
             pnl += pp; gross += notional
@@ -60,7 +79,7 @@ def snapshot():
             last = datetime.fromisoformat(open(LEDGER).readlines()[-1].split(",")[0]).timestamp()
         except Exception:
             pass
-    if rows and time.time() - last >= 300:        # one point / 5 min max
+    if rows and time.time() - last >= 120:        # one point / 2 min max
         new = not os.path.exists(LEDGER)
         with open(LEDGER, "a") as f:
             if new:

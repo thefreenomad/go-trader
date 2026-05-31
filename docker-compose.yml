@@ -12,9 +12,10 @@ services:
       - ./scheduler/config.docker.json:/app/scheduler/config.json:ro   # edit config w/o rebuild
       - ./backtest:/app/backtest:ro   # registry_loader + simulate deps (tuner/simulate probes)
       - ./research:/app/research      # latest engine + orchestrator + position-state (rw)
+    env_file:
+      - .env          # HYPERLIQUID_TESTNET + ACCOUNT_ADDRESS + SECRET_KEY (testnet)
     environment:
       - GO_TRADER_ALLOW_MISSING_STATE=1
-      # paper needs no secrets; add DISCORD_BOT_TOKEN / HYPERLIQUID_SECRET_KEY here for live
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8099/health"]

@@ -20,6 +20,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 RUN python -m venv /app/.venv \
     && /app/.venv/bin/pip install --no-cache-dir --upgrade pip \
     && /app/.venv/bin/pip install --no-cache-dir ccxt hyperliquid-python-sdk numpy pandas
+# Pin the HL SDK to the repo-locked version (0.23.x changed asset_to_sz_decimals
+# keying + meta structure and breaks the adapter). Separate layer keeps the big
+# pip layer above cached.
+RUN /app/.venv/bin/pip install --no-cache-dir "hyperliquid-python-sdk==0.22.0"
 # repo dirs (scripts self-resolve imports relative to their own location)
 COPY platforms/ ./platforms/
 COPY shared_scripts/ ./shared_scripts/
