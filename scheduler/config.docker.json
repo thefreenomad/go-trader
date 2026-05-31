@@ -25,609 +25,495 @@
       "id": "hl-xs-ada",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "ADA",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "ADA",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-algo",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "ALGO",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "ALGO",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-ape",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "APE",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "APE",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-arb",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "ARB",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "ARB",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-aster",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "ASTER",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "ASTER",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-atom",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "ATOM",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "ATOM",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-avax",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "AVAX",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "AVAX",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-avnt",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "AVNT",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "AVNT",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-bch",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "BCH",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "BCH",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-bnb",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "BNB",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "BNB",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-btc",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "BTC",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "BTC",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-dash",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "DASH",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "DASH",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-doge",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "DOGE",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "DOGE",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-dot",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "DOT",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "DOT",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-eth",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "ETH",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "ETH",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-fet",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "FET",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "FET",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-ftm",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "FTM",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "FTM",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-hbar",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "HBAR",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "HBAR",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-hype",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "HYPE",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "HYPE",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-icp",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "ICP",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "ICP",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-iota",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "IOTA",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "IOTA",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-link",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "LINK",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "LINK",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-ltc",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "LTC",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "LTC",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-mkr",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "MKR",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "MKR",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-near",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "NEAR",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "NEAR",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-neo",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "NEO",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "NEO",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-ondo",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "ONDO",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "ONDO",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-pengu",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "PENGU",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "PENGU",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-pol",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "POL",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "POL",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-pump",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "PUMP",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "PUMP",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-render",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "RENDER",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "RENDER",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-sol",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "SOL",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "SOL",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-sui",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "SUI",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "SUI",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-trx",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "TRX",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "TRX",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-uni",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "UNI",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "UNI",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-xlm",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "XLM",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "XLM",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-xrp",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "XRP",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "XRP",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     },
     {
       "id": "hl-xs-zec",
       "type": "manual",
       "platform": "hyperliquid",
+      "symbol": "ZEC",
+      "timeframe": "4h",
       "script": "shared_scripts/check_hyperliquid.py",
-      "args": [
-        "hold",
-        "ZEC",
-        "4h"
-      ],
       "capital": 1000,
       "leverage": 1,
       "margin_mode": "cross",
-      "allowed_regimes": [],
-      "max_drawdown_pct": 50
+      "max_drawdown_pct": 50,
+      "allowed_regimes": []
     }
   ]
 }

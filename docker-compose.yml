@@ -9,6 +9,8 @@ services:
       - "8099:8099"            # dashboard + /status + /health (loopback on host)
     volumes:
       - ./docker-data:/app/data   # persist state.db + logs across restarts
+      - ./scheduler/config.docker.json:/app/scheduler/config.json:ro   # edit config w/o rebuild
+      - ./backtest:/app/backtest:ro   # registry_loader + simulate deps (tuner/simulate probes)
     environment:
       - GO_TRADER_ALLOW_MISSING_STATE=1
       # paper needs no secrets; add DISCORD_BOT_TOKEN / HYPERLIQUID_SECRET_KEY here for live
