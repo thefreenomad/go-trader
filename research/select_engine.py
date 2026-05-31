@@ -10,14 +10,22 @@ Locked config (from research):
   sizing   = vol-target 15% (live: from running track record; cold start lev=1)
   gate     = weak-bear: if BTC composite == trending_down_choppy -> FLAT the book
   cadence  = biweekly
-NOTE: signals use cached OHLCV; a live run refreshes 4h candles to 'now'.
+Signals are fetched LIVE from Hyperliquid (the venue we trade) -- same prices we
+execute against, no proxy. Universe stays crypto-only (BinanceUS-derived list
+intersected with HL; excludes HL's tokenized equities).
 """
 import sys, json, warnings
 warnings.filterwarnings("ignore")
 sys.path.insert(0, "shared_tools")
 import numpy as np, pandas as pd, ccxt
-from data_fetcher import load_cached_data
 from regime import compute_regime_composite
+
+
+def _hl_ohlcv(hl, coin, limit):
+    o = hl.fetch_ohlcv(f"{coin}/USDC:USDC", TF, limit=limit)
+    df = pd.DataFrame(o, columns=["t", "open", "high", "low", "close", "volume"])
+    df.index = pd.to_datetime(df["t"], unit="ms")
+    return df
 
 TF = "4h"; BARS_DAY = 6; LB = 4 * 7 * BARS_DAY
 QFRAC = 0.20; NLIQ = 40; NAME_CAP = 0.25; REGIME_PERIOD = 90
@@ -46,15 +54,22 @@ def compute_target(aum, lev=1.0, nliq=NLIQ):
     universe = [s.split("/")[0] for s in syms if hl_vol(s.split("/")[0]) is not None]
     universe = sorted(universe, key=lambda c: -(hl_vol(c) or 0))[:nliq]
 
-    closes = {c: load_cached_data(f"{c}/USDT", TF)["close"] for c in universe}
-    P = pd.DataFrame(closes).sort_index()
+    # signal prices fetched LIVE from Hyperliquid (same venue we execute on)
+    need = LB + 60; closes = {}
+    for c in universe:
+        try:
+            closes[c] = _hl_ohlcv(hl, c, need)["close"]
+        except Exception:
+            continue
+    P = pd.DataFrame(closes).sort_index().ffill()
+    universe = list(P.columns)
     asof = P.index[-1]
     mom = P.iloc[-1] / P.iloc[-1 - LB] - 1
     vol = P.pct_change().iloc[-LB:].std()
     elig = [c for c in universe if not (pd.isna(mom[c]) or pd.isna(vol[c]) or vol[c] <= 0)]
 
-    btc = load_cached_data("BTC/USDT", TF)
-    regime = compute_regime_composite(btc, period=REGIME_PERIOD)["regime"].iloc[-1]
+    btc_df = _hl_ohlcv(hl, "BTC", need)
+    regime = compute_regime_composite(btc_df, period=REGIME_PERIOD)["regime"].iloc[-1]
     gated = regime == "trending_down_choppy"
 
     target = []
