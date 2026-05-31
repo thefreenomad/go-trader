@@ -128,3 +128,15 @@ numbers — those live in `README.md`). Append as we clarify more.
 31. **Negative controls verify the engine, not just the edge.** reversal (flip the ranking) →
     Sharpe −3.16 (perfect inverse); random rank → ~0. Run these whenever a result looks too
     good — they distinguish real signal from a look-ahead bug.
+
+## Squeeze / robustness (trade-data refinements)
+
+32. **The signal is what it is — refinements were marginal-to-negative.** skip-oversold short
+    helped the bull but cratered the bear (wash); per-name cap did nothing at 5 coins/leg;
+    3-week holds were clearly worse. Don't over-engineer a real but modest edge.
+33. **Expanding the universe is the real robustness lever (confirmed).** Top-25 -> top-40 HL
+    dropped FET's P&L share 34% -> 20% AND dropped Sharpe 2.32 -> 1.45. The lower number is the
+    HONEST one — the headline was partly single-name concentration. More breadth = a smaller,
+    more trustworthy, more robust edge. Per-name caps only bite once the universe is large.
+34. **Realistic deployable edge: ~1.5-1.9 Sharpe market-neutral** (expanded HL universe, net of
+    HL costs, beats random +4σ). Robust, not spectacular.

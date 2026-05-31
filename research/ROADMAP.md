@@ -20,7 +20,8 @@ regime engine (`shared_tools/regime.py` composite 7-state classifier + live
           distribution (not just 2 macro halves).
 - [x] **>>> CHECKPOINT: PASSED.** Regime gate yields sensible, economically-motivated
       improvement (validates strong/weak-bear taxonomy). Continue.
-- [ ] **3. Build & re-validate** the regime-conditioned deployable strategy from only
+- [x] **3. Build & re-validate** DONE. Deployable on HL (capacity ~$20M, funding signed ~flat). Edge ~1.5-1.9 Sharpe market-neutral (expanded universe; concentrated 2.78 was FET-inflated). Squeeze refinements marginal. Weak-bear gate modest (+0.9sd). Breadth gate FAILED causal validation.
+- [x] ~~3-old~~ **Build & re-validate** the regime-conditioned deployable strategy from only
       what step 2 proved. REGIME GATE = BREADTH/dispersion from the universe (NOT BTC alone):
       breadth high -> Sharpe 3+, mid -> -1.8, low -> ~0. Gate to avoid the mushy middle; set
       breadth thresholds CAUSALLY (rolling quantiles). Also: deployable 4w XS-mom. Full gauntlet: bull/bear + rolling dist + vs
