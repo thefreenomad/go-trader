@@ -20,3 +20,4 @@ local/
 # macOS
 .DS_Store
 architecture.md
+research/results/xs_positions.json
