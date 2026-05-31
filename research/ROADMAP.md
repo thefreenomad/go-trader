@@ -26,7 +26,8 @@ regime engine (`shared_tools/regime.py` composite 7-state classifier + live
       breadth high -> Sharpe 3+, mid -> -1.8, low -> ~0. Gate to avoid the mushy middle; set
       breadth thresholds CAUSALLY (rolling quantiles). Also: deployable 4w XS-mom. Full gauntlet: bull/bear + rolling dist + vs
       always-on + vs random + net of funding. Keep degrees of freedom small.
-- [ ] **4. Config-writer pipeline.** Cron: rank → regime-gate → significance gate →
+- [~] **4. Pipeline (IN PROGRESS).** Brain DONE (select_engine.py): reads HL universe+prices, emits target portfolio + manual-open/close commands, encodes locked config. Integration insight: go-trader runs per-asset signal strategies, NOT cross-sectional -> selection lives in OUR layer; connect via type:manual positions (manual-open/close), not a strategy-config. NEXT: orchestrator (diff current vs target -> drive open/close, write manual slots, cron) + paper-shadow.
+- [ ] ~~4-old~~ **Config-writer pipeline.** Cron: rank → regime-gate → significance gate →
       write `scheduler/config.json` (per-coin entries). Apply the BREADTH gate at the
       SELECTION layer (deploy book or not); set per-coin `allowed_regimes` LOOSE — per-asset
       regime gating HURTS a relative cross-sectional signal (regime_perasset.py). SIGHUP.
