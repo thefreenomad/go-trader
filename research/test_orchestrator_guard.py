@@ -57,6 +57,48 @@ class TestFilterSettling:
         assert sup == ["FET"]
 
 
+class TestMonitorCloses:
+    def _cur(self, **sides):
+        return {c: {"side": s, "notional": 40.0} for c, s in sides.items()}
+
+    def test_regime_flat_closes_everything(self):
+        cur = self._cur(FET="long", APE="short")
+        out = orch.monitor_closes(cur, {"FET": 0.9, "APE": 0.1}, gated=True)
+        assert {c for c, _, _ in out} == {"FET", "APE"}
+        assert all(why == "regime-flat" for _, _, why in out)
+
+    def test_long_closed_when_rank_decays_below_threshold(self):
+        cur = self._cur(FET="long")
+        out = orch.monitor_closes(cur, {"FET": 0.30}, gated=False, exit_pct=0.45)
+        assert [c for c, _, _ in out] == ["FET"]
+
+    def test_long_held_when_rank_still_strong(self):
+        cur = self._cur(FET="long")
+        out = orch.monitor_closes(cur, {"FET": 0.80}, gated=False, exit_pct=0.45)
+        assert out == []
+
+    def test_short_closed_when_rank_rises_above_upper(self):
+        cur = self._cur(APE="short")
+        out = orch.monitor_closes(cur, {"APE": 0.70}, gated=False, exit_pct=0.45)
+        assert [c for c, _, _ in out] == ["APE"]   # 0.70 > 1-0.45=0.55
+
+    def test_short_held_when_still_weak(self):
+        cur = self._cur(APE="short")
+        out = orch.monitor_closes(cur, {"APE": 0.20}, gated=False, exit_pct=0.45)
+        assert out == []
+
+    def test_inside_dead_band_holds_both_sides(self):
+        cur = self._cur(FET="long", APE="short")
+        # 0.50 is inside [0.45, 0.55] for both -> hold
+        out = orch.monitor_closes(cur, {"FET": 0.50, "APE": 0.50}, gated=False, exit_pct=0.45)
+        assert out == []
+
+    def test_unrankable_coin_is_held_not_closed(self):
+        cur = self._cur(FET="long")
+        out = orch.monitor_closes(cur, {}, gated=False, exit_pct=0.45)   # FET absent from ranks
+        assert out == []
+
+
 class TestLock:
     def test_lock_is_exclusive(self, tmp_path):
         p = str(tmp_path / "x.lock")

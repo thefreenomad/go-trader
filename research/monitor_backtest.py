@@ -173,13 +173,15 @@ def run(variant, **kw):
                     ncloses += held_w.sum() + held_s.sum(); closed_cost += COST
                     held_w[:] = False; held_s[:] = False; flat_break = True; break
                 momt = Pv[b + t] / Pv[b + t - LB] - 1.0     # 4w momentum rank at this bar
-                med = np.nanmedian(momt[~np.isnan(momt)])
+                vals = momt[~np.isnan(momt)]
+                pct = kw.get("pct", 0.50)                    # hysteresis: pct<0.5 -> dead band
+                lo = np.quantile(vals, pct); hi = np.quantile(vals, 1 - pct)
                 for li, gi in enumerate(bk["W"]):
-                    if held_w[li] and not np.isnan(momt[gi]) and momt[gi] < med:   # winner lost its half
+                    if held_w[li] and not np.isnan(momt[gi]) and momt[gi] < lo:     # winner clearly broke
                         locked += lev * wl[li] * retw[t, li]; held_w[li] = False
                         closed_cost += COST / (2 * k); hold_sum += t / STEP; ncloses += 1
                 for li, gi in enumerate(bk["L"]):
-                    if held_s[li] and not np.isnan(momt[gi]) and momt[gi] > med:   # loser left its half
+                    if held_s[li] and not np.isnan(momt[gi]) and momt[gi] > hi:     # loser clearly broke
                         locked += -lev * ws[li] * retl[t, li]; held_s[li] = False
                         closed_cost += COST / (2 * k); hold_sum += t / STEP; ncloses += 1
             live = lev * (np.sum(wl[held_w] * retw[-1, held_w]) - np.sum(ws[held_s] * retl[-1, held_s]))
@@ -237,6 +239,7 @@ variants = [
     ("rehedge", dict(X=0.15)), ("rehedge", dict(X=0.25)),
     ("exitdecay", dict()),
     ("combo", dict()),
+    ("combo", dict(pct=0.45)), ("combo", dict(pct=0.40)), ("combo", dict(pct=0.35)),
 ]
 
 print(f"Top-{TOPLIQ} liquid; {len(rebals)} biweekly cycles; 4h path-aware "
@@ -245,7 +248,7 @@ print(f"  {'variant':16s} {'total%':>8s} {'Sharpe':>7s} {'bull':>6s} {'bear':>6s
 series = {}
 for name, kw in variants:
     w = run(name, **kw)
-    label = name + (f"_{int(kw['X']*100)}" if "X" in kw else "")
+    label = name + (f"_{int(kw['X']*100)}" if "X" in kw else "") + (f"_p{int(kw['pct']*100)}" if "pct" in kw else "")
     series[label] = w
     t, s, m = stats(w); bu, be = sub(w)
     print(f"  {label:16s} {t:>8.0f} {s:>7.2f} {bu:>6.2f} {be:>6.2f} {m:>7.0f}")

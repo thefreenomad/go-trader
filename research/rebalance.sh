@@ -5,6 +5,7 @@
 #
 #   env knobs:  XS_AUM (default 100000)  XS_LIVE (0=paper record-only, 1=live)
 #               XS_DRYRUN (1 = preview only, no execute)
+#               XS_MONITOR (1 = 4h close-only monitor pass instead of a rebalance)
 set -euo pipefail
 
 REPO="/Users/tony/Documents/go-trader"
@@ -17,15 +18,21 @@ ts() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
 
 # build flags
 flags=(--aum "$AUM")
-[ "${XS_LIVE:-0}" = "1" ] || flags+=(--paper)        # paper unless XS_LIVE=1
+if [ "${XS_MONITOR:-0}" = "1" ]; then
+  flags+=(--monitor)                                 # 4h close-only pass (regime + exit-decay)
+else
+  [ "${XS_LIVE:-0}" = "1" ] || flags+=(--paper)      # paper unless XS_LIVE=1
+fi
 [ "${XS_DRYRUN:-0}" = "1" ] || flags+=(--execute)    # execute unless XS_DRYRUN=1
+
+label="rebalance"; [ "${XS_MONITOR:-0}" = "1" ] && label="monitor"
 
 # guard: container must be running
 if ! "$DOCKER" ps --filter "name=$CONTAINER" --filter "status=running" --format '{{.Names}}' | grep -q "$CONTAINER"; then
-  echo "[$(ts)] ERROR: container $CONTAINER not running — skipping rebalance" >&2
+  echo "[$(ts)] ERROR: container $CONTAINER not running — skipping $label" >&2
   exit 1
 fi
 
-echo "[$(ts)] rebalance start — flags: ${flags[*]}"
+echo "[$(ts)] $label start — flags: ${flags[*]}"
 "$DOCKER" exec "$CONTAINER" .venv/bin/python research/orchestrator.py "${flags[@]}"
-echo "[$(ts)] rebalance done (exit 0)"
+echo "[$(ts)] $label done (exit 0)"

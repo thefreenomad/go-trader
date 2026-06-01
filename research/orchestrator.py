@@ -15,10 +15,12 @@ Safe by default: prints the plan; only touches go-trader with --execute.
 """
 import sys, os, json, argparse, subprocess, time, fcntl
 sys.path.insert(0, "research")
-from select_engine import compute_target
+from select_engine import compute_target, compute_monitor
 
 STATE = "research/results/xs_positions.json"     # what we currently hold (per-coin side+notional)
 RESIZE_TOL = 0.25                                  # re-open only if notional drifts > 25%
+EXIT_PCT = 0.45                                    # 4h monitor: close long below this momentum rank,
+#                                                    short above 1-this (validated combo, 10pt hysteresis)
 ATTEMPTS = "research/results/xs_attempts.json"   # per-coin last on-chain action ts (idempotency)
 SETTLE_GRACE_S = 600                              # suppress re-acting on a coin for 10 min (settlement lag)
 LOCK = "/tmp/xs_orchestrator.lock"               # process lock: never two rebalances at once
@@ -42,6 +44,27 @@ def load_attempts(path):
 def save_attempts(path, d):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     json.dump(d, open(path, "w"), indent=2)
+
+
+def stamp_attempts(coins):
+    """Stamp coins we just acted on (idempotency); prune entries past the window."""
+    now = time.time()
+    a = {c: ts for c, ts in load_attempts(ATTEMPTS).items() if (now - ts) < SETTLE_GRACE_S}
+    for c in coins:
+        a[c] = now
+    save_attempts(ATTEMPTS, a)
+
+
+def log_event(n_positions, gross, note):
+    """Append to rebalance_events.csv — the dashboard marks these on the curve."""
+    from datetime import datetime as _dt, timezone as _tz
+    EV = "research/results/rebalance_events.csv"
+    new = not os.path.exists(EV)
+    os.makedirs(os.path.dirname(EV), exist_ok=True)
+    with open(EV, "a") as f:
+        if new:
+            f.write("time,n_positions,gross,note\n")
+        f.write(f"{_dt.now(_tz.utc).isoformat()},{n_positions},{gross:.0f},{note}\n")
 
 
 def filter_settling(closes, opens, attempts, now, grace):
@@ -114,6 +137,28 @@ def diff(current, target, gated):
     return closes, opens, holds
 
 
+def monitor_closes(current, mom_pct, gated, exit_pct=EXIT_PCT):
+    """4h close-only decisions (the validated combo). Regime weak-bear -> flatten
+    the whole book; otherwise exit-decay: close a held long whose momentum rank
+    fell below exit_pct, a held short whose rank rose above 1-exit_pct. A held coin
+    with no current rank (dropped from the eligible universe this tick) is HELD —
+    only the backtested signals (regime + rank decay) trigger a monitor close; the
+    biweekly rebalance handles universe turnover. Returns [(coin, side, reason)]."""
+    out = []
+    for coin, cur in sorted(current.items()):
+        side = cur["side"]
+        if gated:
+            out.append((coin, side, "regime-flat")); continue
+        p = mom_pct.get(coin)
+        if p is None:
+            continue                                   # not rankable this tick -> hold
+        if side == "long" and p < exit_pct:
+            out.append((coin, side, f"decay rank {p:.2f}<{exit_pct:.2f}"))
+        elif side == "short" and p > 1 - exit_pct:
+            out.append((coin, side, f"decay rank {p:.2f}>{1 - exit_pct:.2f}"))
+    return out
+
+
 def run_cmd(args, execute, gt):
     cmd = [gt] + args
     print("   $ " + " ".join(cmd))
@@ -140,6 +185,47 @@ def emit_config(target_universe_hint=40):
     print("  Declare one per coin you may trade (the full universe). Merge into scheduler/config.json once.")
 
 
+def run_monitor(a):
+    """4h close-only monitor: flatten on weak-bear regime, else close held names
+    whose momentum rank has decayed (the validated combo). Never opens — entries
+    stay on the biweekly rebalance. Shares the rebalance lock + settlement guard."""
+    lock = None
+    if a.execute:
+        lock = acquire_lock(LOCK)
+        if lock is None:
+            print("a rebalance/monitor is already in progress (lock held) — exiting"); return
+    try:
+        current = live_positions()
+    except Exception as e:
+        print(f"warn: live_positions failed ({e}); nothing to monitor"); return
+    if not current:
+        print("=== MONITOR === no open positions; nothing to check"); return
+
+    sig = compute_monitor(a.aum)
+    closes = monitor_closes(current, sig["mom_pct"], sig["gated"], EXIT_PCT)
+    suppressed = []
+    if a.execute:                       # don't re-close a coin acted on within the window
+        now = time.time()
+        suppress = {c for c, ts in load_attempts(ATTEMPTS).items() if (now - ts) < SETTLE_GRACE_S}
+        suppressed = sorted({c for c, _, _ in closes} & suppress)
+        closes = [x for x in closes if x[0] not in suppress]
+
+    print(f"=== MONITOR  (as of {sig['asof']}, {'EXECUTE' if a.execute else 'DRY-RUN'}) ===")
+    print(f"BTC regime {sig['regime']}{'  -> WEAK BEAR: FLATTEN' if sig['gated'] else ''}")
+    print(f"held {len(current)} | close {len(closes)}"
+          + (f" | settling-skip {len(suppressed)}" if suppressed else ""))
+    for coin, side, why in closes:
+        print(f"  hl-xs-{coin.lower():6s} ({side:5s})  [{why}]")
+        run_cmd(["manual-close", f"hl-xs-{coin.lower()}"], a.execute, a.gotrader)
+    if not closes:
+        print("  (book healthy — no exits triggered)")
+    if a.execute and closes:
+        stamp_attempts({c for c, _, _ in closes})
+        log_event(len(current) - len(closes), 0, f"monitor closes={len(closes)}")
+    if not a.execute:
+        print("\n(dry-run: no closes executed. Add --execute to apply.)")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--aum", type=float, default=100_000)
@@ -148,9 +234,13 @@ def main():
     ap.add_argument("--paper", action="store_true", help="paper: record-only opens at current price")
     ap.add_argument("--gotrader", default="./go-trader")
     ap.add_argument("--emit-config", action="store_true")
+    ap.add_argument("--monitor", action="store_true",
+                    help="4h close-only monitor pass (regime flatten + exit-decay); never opens")
     a = ap.parse_args()
     if a.emit_config:
         emit_config(); return
+    if a.monitor:
+        return run_monitor(a)
 
     lock = None
     if a.execute:                       # hold an exclusive lock for the whole live run
@@ -211,23 +301,9 @@ def main():
         os.makedirs(os.path.dirname(STATE), exist_ok=True)
         json.dump(new_state, open(STATE, "w"), indent=2)
         print(f"\nstate persisted -> {STATE}")
-        # stamp coins we just acted on so the next run inside the window skips them
-        now = time.time()
-        attempts = {c: ts for c, ts in load_attempts(ATTEMPTS).items() if (now - ts) < SETTLE_GRACE_S}
-        for coin in ({c[0] for c in closes} | {o[0] for o in opens}):
-            attempts[coin] = now
-        save_attempts(ATTEMPTS, attempts)
-        # log a rebalance event (dashboard marks these on the equity curve)
-        import csv as _csv
-        from datetime import datetime as _dt, timezone as _tz
-        EV = "research/results/rebalance_events.csv"
-        _new = not os.path.exists(EV)
-        with open(EV, "a") as _f:
-            if _new:
-                _f.write("time,n_positions,gross,note\n")
-            _g = sum(t["notional"] for t in r["target"])
-            _f.write(f"{_dt.now(_tz.utc).isoformat()},{len(r['target'])},{_g:.0f},"
-                     f"opens={len(opens)} closes={len(closes)} holds={len(holds)}\n")
+        stamp_attempts({c[0] for c in closes} | {o[0] for o in opens})
+        log_event(len(r["target"]), sum(t["notional"] for t in r["target"]),
+                  f"opens={len(opens)} closes={len(closes)} holds={len(holds)}")
     else:
         print("\n(dry-run: no go-trader commands executed, state unchanged. Add --execute to apply.)")
 

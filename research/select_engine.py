@@ -63,7 +63,10 @@ def _cap_weights(inv_vols):
     return w
 
 
-def compute_target(aum, lev=1.0, nliq=NLIQ):
+def _signals(aum, nliq=NLIQ):
+    """Shared universe + momentum + regime computation. compute_target (biweekly
+    entry) and compute_monitor (4h exit check) BOTH build off this, so the entry
+    ranking and the exit ranking can never drift apart."""
     hl = ccxt.hyperliquid({"enableRateLimit": True}); hl.load_markets(); htk = hl.fetch_tickers()
     def hl_vol(c): return (htk.get(f"{c}/USDC:USDC") or {}).get("quoteVolume")
     syms = json.load(open("research/universe.json"))
@@ -74,9 +77,6 @@ def compute_target(aum, lev=1.0, nliq=NLIQ):
     # (drops e.g. BCH/UNI not on testnet, ZEC szDecimals=0 whose min size >> a slot).
     if os.environ.get("HYPERLIQUID_TESTNET", "") == "1":
         tn = _testnet_universe()
-        # listed on testnet + coarse-enough to size. (Some listed coins have empty
-        # testnet order books at execution time -> market orders no-fill; the
-        # orchestrator's account-reconcile retries them harmlessly next run.)
         universe = [c for c in universe
                     if c in tn and (10.0 ** -tn[c]["szd"]) * tn[c]["px"] <= aum * 0.10]
 
@@ -89,15 +89,19 @@ def compute_target(aum, lev=1.0, nliq=NLIQ):
             continue
     P = pd.DataFrame(closes).sort_index().ffill()
     universe = list(P.columns)
-    asof = P.index[-1]
     mom = P.iloc[-1] / P.iloc[-1 - LB] - 1
     vol = P.pct_change().iloc[-LB:].std()
     elig = [c for c in universe if not (pd.isna(mom[c]) or pd.isna(vol[c]) or vol[c] <= 0)]
 
     btc_df = _hl_ohlcv(hl, "BTC", need)
     regime = compute_regime_composite(btc_df, period=REGIME_PERIOD)["regime"].iloc[-1]
-    gated = regime == "trending_down_choppy"
+    return dict(P=P, mom=mom, vol=vol, universe=universe, elig=elig,
+                asof=str(P.index[-1]), regime=regime, gated=(regime == "trending_down_choppy"))
 
+
+def compute_target(aum, lev=1.0, nliq=NLIQ):
+    s = _signals(aum, nliq)
+    P, mom, vol, elig, gated = s["P"], s["mom"], s["vol"], s["elig"], s["gated"]
     target = []
     if not gated and len(elig) >= 8:
         ranked = sorted(elig, key=lambda c: mom[c]); k = max(1, int(len(elig) * QFRAC))
@@ -107,8 +111,20 @@ def compute_target(aum, lev=1.0, nliq=NLIQ):
                 target.append(dict(coin=c, side=side, weight=float(wi),
                                    notional=round(aum * lev * wi, 2), mom=float(mom[c]),
                                    price=round(float(P.iloc[-1][c]), 6)))
-    return dict(asof=str(asof), regime=regime, gated=gated, universe_coins=universe,
-                universe=len(universe), eligible=len(elig), target=target)
+    return dict(asof=s["asof"], regime=s["regime"], gated=gated, universe_coins=s["universe"],
+                universe=len(s["universe"]), eligible=len(elig), target=target)
+
+
+def compute_monitor(aum, nliq=NLIQ):
+    """4h intra-cycle exit signals (close-only). Returns the regime gate plus each
+    eligible coin's momentum percentile rank in [0,1] (1 = strongest). The monitor
+    closes a held long when its rank falls below EXIT_PCT and a held short when its
+    rank rises above 1-EXIT_PCT (validated combo: regime4h + exit-decay)."""
+    s = _signals(aum, nliq)
+    elig, mom = s["elig"], s["mom"]
+    pct = mom[elig].rank(pct=True) if elig else mom[:0]
+    return dict(asof=s["asof"], regime=s["regime"], gated=s["gated"],
+                eligible=len(elig), mom_pct={c: float(pct[c]) for c in elig})
 
 
 def main():
