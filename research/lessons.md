@@ -56,8 +56,12 @@ numbers — those live in `README.md`). Append as we clarify more.
     Sharpe 1.6 → ~1.0 at realistic 20–30%/yr — and that model is optimistic (long leg only).
 16. **Crypto momentum wants recent data — skip-recent (classic 12-1) HURTS.** Unlike
     equities, including the most recent window is better (continuation, not reversal).
-17. **Less-frequent rebalancing (biweekly) beat weekly** by removing whipsaw — but
-    re-validate sub-period, because biweekly can be bull-loaded.
+17. **Match rebalance cadence to signal speed — don't fix one in isolation.** Early on,
+    biweekly beat weekly *at a 4w lookback* (less whipsaw). But a full lookback×cadence
+    grid (`param_sweep.py`/`deploy_compare.py`) showed the real structure: short momentum
+    decays fast and needs a fast rebalance. **weekly/1w** (Sharpe ~1.4 bare, 1.24 @25bp,
+    −18% maxDD) beats biweekly/4w net of cost and turnover; biweekly/1w collapses (0.49,
+    stale ranking). Cadence and lookback are one joint choice, not two.
 
 ## Regime
 
@@ -160,3 +164,21 @@ numbers — those live in `README.md`). Append as we clarify more.
 37. **Liquid crypto on HL is only ~30 perps (>$3M/day).** Crypto-only breadth is inherently
     limited on HL; the big universe expansion HL offers is equities. Breadth vs asset-class
     purity is a real tradeoff to decide deliberately.
+
+## High-level params + the deployed system (Step 6-8)
+
+38. **Optimize the DEPLOYED system, not the bare book — components that each help can fight
+    when combined.** The 4h exit-decay monitor *lifts* a slow biweekly/4w book (0.88→1.14)
+    but *craters* a fast weekly/1w one (1.40→0.71, 248 whipsaw closes/yr): a 1w rank
+    recomputed every 4h is pure noise. A fast rebalance and an intra-cycle exit-monitor are
+    two ways to buy the same responsiveness — stacking them double-trades. `deploy_compare.py`
+    flipped the bare-book ranking; always backtest the *thing you'll actually run*.
+39. **Commit to one config; don't adapt — realistic selection underperforms committing.**
+    Walk-forward that re-picks the best lookback by trailing Sharpe (no hindsight) scored
+    0.30 mean OOS Sharpe vs **1.02 for always-weekly/1w** and 0.83 for always-bi/4w —
+    trailing-Sharpe selection is too noisy and whipsaws (mirror of #10, now at the
+    config level). Pick the best *fixed* config and hold it.
+40. **weekly/1w validated OOS, but it's higher-octane.** Positive in all 4 sequential
+    sub-periods and best fixed OOS total (123%), so not luck — but more variable than
+    bi/4w (5/9 vs 7/9 OOS folds positive) and weakest in the deep-bear stretch (2025-Q2),
+    where the slower book is more defensive. Expect bigger swings; watch it in bear regimes.
