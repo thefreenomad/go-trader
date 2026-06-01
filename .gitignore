@@ -31,3 +31,5 @@ docker-data/
 
 # fetched market-data cache (OHLCV + funding)
 research/data/
+research/results/paper_live.csv
+research/results/paper_live_state.json
