@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.gotrader.paperlive</string>
+  <key>WorkingDirectory</key><string>/Users/tony/Documents/go-trader</string>
+  <!-- launchd (not cron): user agents have ~/Documents access; cron is blocked by TCC -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/tony/Documents/go-trader/.venv/bin/python</string>
+    <string>research/paper_live.py</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key><string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <!-- every 4h, 7 min after the candle close -->
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Minute</key><integer>7</integer><key>Hour</key><integer>0</integer></dict>
+    <dict><key>Minute</key><integer>7</integer><key>Hour</key><integer>4</integer></dict>
+    <dict><key>Minute</key><integer>7</integer><key>Hour</key><integer>8</integer></dict>
+    <dict><key>Minute</key><integer>7</integer><key>Hour</key><integer>12</integer></dict>
+    <dict><key>Minute</key><integer>7</integer><key>Hour</key><integer>16</integer></dict>
+    <dict><key>Minute</key><integer>7</integer><key>Hour</key><integer>20</integer></dict>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/Users/tony/Documents/go-trader/docker-data/paper_live.log</string>
+  <key>StandardErrorPath</key><string>/Users/tony/Documents/go-trader/docker-data/paper_live.log</string>
+</dict></plist>

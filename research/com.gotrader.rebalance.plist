@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.gotrader.rebalance</string>
+  <key>WorkingDirectory</key><string>/Users/tony/Documents/go-trader</string>
+  <!-- launchd (not cron): user agents have ~/Documents access; cron is blocked by TCC -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/tony/Documents/go-trader/research/rebalance.sh</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key><string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>XS_LIVE</key><string>1</string>
+    <key>XS_AUM</key><string>200</string>
+  </dict>
+  <!-- biweekly: 1st & 15th, 00:10 UTC (3w lookback, no monitor) -->
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Minute</key><integer>10</integer><key>Hour</key><integer>0</integer><key>Day</key><integer>1</integer></dict>
+    <dict><key>Minute</key><integer>10</integer><key>Hour</key><integer>0</integer><key>Day</key><integer>15</integer></dict>
+  </array>
+  <key>RunAtLoad</key><false/>
+  <key>StandardOutPath</key><string>/Users/tony/Documents/go-trader/docker-data/rebalance.log</string>
+  <key>StandardErrorPath</key><string>/Users/tony/Documents/go-trader/docker-data/rebalance.log</string>
+</dict></plist>

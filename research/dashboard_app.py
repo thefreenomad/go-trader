@@ -287,5 +287,14 @@ if __name__ == "__main__":
     if "--tick" in sys.argv:
         r, e, p, g = snapshot(); print(f"snapshot: balance ${e:,.0f}  pnl ${p:+,.0f}  ({len(r)} pos)")
     else:
+        import threading
+        def _ticker():                       # self-tick so the equity ledger grows without page views
+            while True:
+                time.sleep(1800)
+                try:
+                    snapshot()
+                except Exception:
+                    pass
+        threading.Thread(target=_ticker, daemon=True).start()
         print(f"dashboard -> http://localhost:{PORT}")
         HTTPServer(("0.0.0.0", PORT), H).serve_forever()
