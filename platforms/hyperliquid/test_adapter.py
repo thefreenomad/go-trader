@@ -541,3 +541,85 @@ class TestLookupFillFeeByOID:
         monkeypatch.setattr("time.sleep", lambda s: None)
         result = adapter.lookup_fill_fee_by_oid(100, since_ms=1000, max_retries=2, retry_delay_s=0.0)
         assert result == {}
+
+
+# ─── Escalating limit open (bounded slippage) ──────
+
+class TestEscalatingLimitOpen:
+    def _make_adapter(self, mids):
+        mock_info = MagicMock()
+        mock_info.all_mids.return_value = mids
+        mod = _load_hl_adapter(mock_info_cls=MagicMock(return_value=mock_info))
+        adapter = mod.HyperliquidExchangeAdapter()
+        adapter._exchange = MagicMock()
+        adapter._sz_decimals = lambda s: 2   # deterministic rounding for the test
+        return adapter
+
+    @staticmethod
+    def _fill(sz, px, oid=1):
+        return {"status": "ok", "response": {"type": "order", "data": {"statuses": [
+            {"filled": {"totalSz": str(sz), "avgPx": str(px), "oid": oid}}]}}}
+
+    @staticmethod
+    def _nofill():
+        return {"status": "ok", "response": {"type": "order", "data": {"statuses": [
+            {"error": "Order could not immediately match against any resting orders."}]}}}
+
+    def test_fills_on_first_attempt_at_mid(self):
+        a = self._make_adapter({"ETH": "2000"})
+        a._exchange.order.side_effect = [self._fill(1.0, 2000.0, oid=5)]
+        res = a.escalating_limit_open("ETH", True, 1.0, step_bps=10, max_attempts=5)
+        assert a._exchange.order.call_count == 1
+        assert a._exchange.order.call_args_list[0].args[3] == 2000.0   # px == mid
+        filled = res["response"]["data"]["statuses"][0]["filled"]
+        assert float(filled["totalSz"]) == 1.0 and float(filled["avgPx"]) == 2000.0
+        assert filled["oid"] == 5
+
+    def test_escalates_buy_price_upward_until_fill(self):
+        a = self._make_adapter({"ETH": "2000"})
+        a._exchange.order.side_effect = [self._nofill(), self._fill(1.0, 2002.0, oid=7)]
+        res = a.escalating_limit_open("ETH", True, 1.0, step_bps=10, max_attempts=5)
+        calls = a._exchange.order.call_args_list
+        assert a._exchange.order.call_count == 2
+        assert calls[0].args[3] == 2000.0           # attempt 0 @ mid
+        assert calls[1].args[3] > calls[0].args[3]  # attempt 1 stepped up (+10bp)
+        assert float(res["response"]["data"]["statuses"][0]["filled"]["avgPx"]) == 2002.0
+
+    def test_escalates_sell_price_downward(self):
+        a = self._make_adapter({"ETH": "2000"})
+        a._exchange.order.side_effect = [self._nofill(), self._fill(1.0, 1998.0, oid=3)]
+        a.escalating_limit_open("ETH", False, 1.0, step_bps=10, max_attempts=5)
+        calls = a._exchange.order.call_args_list
+        assert calls[0].args[1] is False             # is_buy
+        assert calls[1].args[3] < calls[0].args[3]   # stepped down for a sell
+
+    def test_skips_when_never_fills(self):
+        a = self._make_adapter({"ETH": "2000"})
+        a._exchange.order.side_effect = [self._nofill()] * 5
+        res = a.escalating_limit_open("ETH", True, 1.0, step_bps=10, max_attempts=5)
+        assert a._exchange.order.call_count == 5     # exhausts the cap
+        assert float(res["response"]["data"]["statuses"][0]["filled"]["totalSz"]) == 0.0
+        assert res["_escalating"]["attempts"] == 5 and res["_escalating"]["filled"] == 0.0
+
+    def test_partial_fill_then_completes_remainder(self):
+        a = self._make_adapter({"ETH": "2000"})
+        a._exchange.order.side_effect = [self._fill(0.4, 2000.0, oid=1), self._fill(0.6, 2002.0, oid=2)]
+        res = a.escalating_limit_open("ETH", True, 1.0, step_bps=10, max_attempts=5)
+        calls = a._exchange.order.call_args_list
+        assert calls[1].args[2] == 0.6               # second order requests only the remainder
+        filled = res["response"]["data"]["statuses"][0]["filled"]
+        assert abs(float(filled["totalSz"]) - 1.0) < 1e-9
+        assert abs(float(filled["avgPx"]) - 2001.2) < 1e-6   # size-weighted avg
+        assert filled["oid"] == 2
+
+    def test_caps_slippage_at_step_times_attempts(self):
+        a = self._make_adapter({"ETH": "1000"})
+        a._exchange.order.side_effect = [self._nofill()] * 4 + [self._fill(1.0, 1004.0)]
+        a.escalating_limit_open("ETH", True, 1.0, step_bps=10, max_attempts=5)
+        # last attempt is i=4 -> +40bp from mid: 1000 * 1.004 = 1004.0
+        assert a._exchange.order.call_args_list[4].args[3] == 1004.0
+
+    def test_no_reference_price_raises(self):
+        a = self._make_adapter({})
+        with pytest.raises(ValueError, match="reference mid"):
+            a.escalating_limit_open("ETH", True, 1.0)

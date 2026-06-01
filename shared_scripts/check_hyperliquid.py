@@ -828,6 +828,15 @@ def run_execute(symbol, side, size, mode, stop_loss_pct=0.0, cancel_oid=0, prev_
             # Final-tier TP close (#592): close the entire on-chain residual
             # without specifying a size so rounding drift never leaves dust.
             result = adapter.market_close(symbol, sz=None)
+        elif os.environ.get("LIMIT_OPEN_ENABLED", "0") == "1":
+            # Bounded self-injected slippage instead of a blind 1% market order:
+            # marketable IOC limits stepping off mid, skip the trade if unfilled
+            # within the cap (see adapter.escalating_limit_open).
+            result = adapter.escalating_limit_open(
+                symbol, is_buy, size,
+                step_bps=float(os.environ.get("LIMIT_OPEN_STEP_BPS", "10") or 10),
+                max_attempts=int(os.environ.get("LIMIT_OPEN_MAX_ATTEMPTS", "5") or 5),
+            )
         else:
             result = adapter.market_open(symbol, is_buy, size)
 

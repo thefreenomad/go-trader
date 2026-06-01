@@ -117,6 +117,26 @@ def _floor_size(sz: float, sz_decimals: int) -> float:
     return float(Decimal(str(sz)).quantize(quant, rounding=ROUND_DOWN))
 
 
+def _extract_order_fill(resp: dict):
+    """(filled_sz, avg_px, oid) from an SDK ``order()`` response; zeros when no fill.
+
+    A single IOC order can fragment across price levels but the SDK still reports
+    one aggregated ``filled`` status; an unmatched IOC reports ``error``/empty.
+    """
+    try:
+        statuses = resp.get("response", {}).get("data", {}).get("statuses", []) or []
+    except AttributeError:
+        return 0.0, 0.0, None
+    for st in statuses:
+        filled = st.get("filled") if isinstance(st, dict) else None
+        if filled:
+            sz = float(filled.get("totalSz", 0) or 0)
+            if sz > 0:
+                oid = filled.get("oid")
+                return sz, float(filled.get("avgPx", 0) or 0), (int(oid) if oid is not None else None)
+    return 0.0, 0.0, None
+
+
 def _load_meta_cache(path: str = META_CACHE_PATH, ttl_s: int = META_CACHE_TTL_S, now: float = None):
     """Return (spot_meta, meta) from on-disk cache if fresh, else None.
 
@@ -462,6 +482,75 @@ class HyperliquidExchangeAdapter:
         if size <= 0:
             raise ValueError(f"Size rounded to zero for {symbol} (sz_decimals={sz_decimals})")
         return self._exchange.market_open(symbol, is_buy, size, None, 0.01)
+
+    def escalating_limit_open(
+        self,
+        symbol: str,
+        is_buy: bool,
+        size: float,
+        step_bps: float = 10.0,
+        max_attempts: int = 5,
+    ) -> dict:
+        """Open a position with bounded, self-injected slippage instead of a blind
+        market order.
+
+        ``market_open`` sends a marketable order with a 1% slippage band — on a thin
+        book it can fill the full 1% away from mid, pure cost. Here we instead send a
+        sequence of *marketable IOC limit* orders: attempt 0 prices at the current
+        mid, and each retry steps the limit ``step_bps`` toward the book (buy → up,
+        sell → down). We stop the moment the order fully fills; whatever is unfilled
+        after ``max_attempts`` is abandoned — the caller skips the trade rather than
+        chasing at any price. Worst-case slippage paid is ``(max_attempts-1) *
+        step_bps`` from mid.
+
+        Returns a ``market_open``-shaped dict so the existing fill-parsing path is
+        unchanged; ``totalSz`` is "0" when nothing filled.
+        """
+        if not self._exchange:
+            raise RuntimeError(
+                "escalating_limit_open requires live mode (set HYPERLIQUID_SECRET_KEY)"
+            )
+        sz_decimals = self._sz_decimals(symbol)
+        size = round(size, sz_decimals)
+        if size <= 0:
+            raise ValueError(f"Size rounded to zero for {symbol} (sz_decimals={sz_decimals})")
+        mids = self._info.all_mids()
+        ref = float(mids.get(symbol, mids.get(symbol + "-PERP", 0)) or 0)
+        if ref <= 0:
+            raise ValueError(f"No reference mid price for {symbol}")
+
+        filled_sz = 0.0
+        notional = 0.0
+        oid = None
+        attempts = 0
+        for i in range(max(1, int(max_attempts))):
+            remaining = round(size - filled_sz, sz_decimals)
+            if remaining <= 0:
+                break
+            attempts += 1
+            offset = (i * step_bps) / 10_000.0
+            px = ref * (1.0 + offset) if is_buy else ref * (1.0 - offset)
+            px = _round_perps_px(px, sz_decimals)
+            resp = self._exchange.order(
+                symbol, is_buy, remaining, px, {"limit": {"tif": "Ioc"}}, reduce_only=False
+            )
+            sz, avg, this_oid = _extract_order_fill(resp)
+            if sz > 0:
+                filled_sz += sz
+                notional += sz * avg
+                if this_oid is not None:
+                    oid = this_oid
+
+        avg_px = (notional / filled_sz) if filled_sz > 0 else 0.0
+        status = {"filled": {"avgPx": f"{avg_px}", "totalSz": f"{filled_sz}"}}
+        if oid is not None:
+            status["filled"]["oid"] = oid
+        return {
+            "status": "ok",
+            "response": {"type": "order", "data": {"statuses": [status]}},
+            "_escalating": {"requested": size, "filled": filled_sz,
+                            "attempts": attempts, "ref_mid": ref},
+        }
 
     def market_close(self, symbol: str, sz: float | None = None) -> dict:
         """

@@ -16,6 +16,11 @@ services:
       - .env          # HYPERLIQUID_TESTNET + ACCOUNT_ADDRESS + SECRET_KEY (testnet)
     environment:
       - GO_TRADER_ALLOW_MISSING_STATE=1
+      # Open via bounded escalating IOC limits (10bp/step, up to 5 attempts ->
+      # max 40bp slippage, skip if unfilled) instead of a blind 1% market order.
+      - LIMIT_OPEN_ENABLED=1
+      - LIMIT_OPEN_STEP_BPS=10
+      - LIMIT_OPEN_MAX_ATTEMPTS=5
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8099/health"]
