@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Biweekly rebalance of the cross-sectional momentum book (paper by default).
-# Called by cron on the 1st & 15th. Switch to testnet/live by setting XS_LIVE=1
+# Weekly rebalance of the cross-sectional momentum book (paper by default).
+# Called by cron on Mondays (1w lookback, no monitor). Switch to testnet/live by setting XS_LIVE=1
 # (after putting HYPERLIQUID_TESTNET=1 + key in .env and recreating the container).
 #
 #   env knobs:  XS_AUM (default 100000)  XS_LIVE (0=paper record-only, 1=live)
