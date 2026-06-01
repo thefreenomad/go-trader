@@ -28,3 +28,6 @@ research/results/live_ledger.csv
 research/results/rebalance_events.csv
 research/results/dashboard.log
 docker-data/
+
+# fetched market-data cache (OHLCV + funding)
+research/data/
