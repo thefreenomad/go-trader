@@ -34,6 +34,7 @@ func runManualOpen(args []string) int {
 	fillPrice := fs.Float64("fill-price", 0, "Fill price for --record-only (required when --record-only is set)")
 	recordOnly := fs.Bool("record-only", false, "Register an existing fill without placing a new on-chain order")
 	dryRun := fs.Bool("dry-run", false, "Print planned action without placing order or mutating state")
+	noProtection := fs.Bool("no-protection", false, "Open with NO auto stop-loss/take-profit and don't stamp EntryATR — exits managed externally (e.g. a portfolio monitor). Also stops the scheduler re-arming protection, which requires EntryATR>0.")
 
 	// #711: stdlib flag.Parse stops at the first positional arg, so the
 	// documented `manual-open <strategy-id> --flag value` form fails to parse
@@ -257,6 +258,9 @@ func runManualOpen(args []string) int {
 	if effectiveATRMult == 0 && sc.StopLossATRMult != nil {
 		effectiveATRMult = *sc.StopLossATRMult
 	}
+	if *noProtection {
+		effectiveATRMult = 0 // no ATR stop; also suppresses the ATR fetch + TP below
+	}
 
 	// When --atr is omitted, fetch ATR from the same OHLCV/period strategy opens
 	// see via stampEntryATRIfOpened (#689). On fetch failure, fall back to the
@@ -264,7 +268,7 @@ func runManualOpen(args []string) int {
 	// Collapses fetch-failure + fallback into a single notifier message so one
 	// event = one Discord/Telegram alert.
 	if !*recordOnly && entryATR == 0 {
-		needsATRProtection := effectiveATRMult > 0 || strategyUsesTieredTPATRClose(sc)
+		needsATRProtection := !*noProtection && (effectiveATRMult > 0 || strategyUsesTieredTPATRClose(sc))
 		if needsATRProtection {
 			fetched, fetchErr, fetchedOK := fetchManualEntryATR(sc)
 			if fetchedOK {
@@ -326,7 +330,7 @@ func runManualOpen(args []string) int {
 	// Note: if the strategy has no tiered close AND no ATR-based SL configured,
 	// no warning fires here — that is intentional (no ATR protection requested).
 	var tpOIDs []int64
-	if !*recordOnly && strategyUsesTieredTPATRClose(sc) && entryATR > 0 {
+	if !*recordOnly && !*noProtection && strategyUsesTieredTPATRClose(sc) && entryATR > 0 {
 		oids, warn, err := placeManualProtectionInline(sc, *side, fillQty, resolvedFillPrice, entryATR, effectiveATRMult, stopLossOID)
 		if err != nil || warn != "" {
 			warnNotifier(notifier, fmt.Sprintf(

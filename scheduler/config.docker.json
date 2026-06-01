@@ -4,7 +4,7 @@
   "db_file": "data/state.db",
   "log_dir": "data/logs",
   "status_port": 8099,
-  "default_stop_loss_atr_mult": 1.0,
+  "default_stop_loss_atr_mult": 0,
   "portfolio_risk": {
     "max_drawdown_pct": 25,
     "max_notional_usd": 0,
@@ -33,7 +33,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-algo",
@@ -47,7 +55,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-ape",
@@ -61,7 +77,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-arb",
@@ -75,7 +99,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-aster",
@@ -89,7 +121,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-atom",
@@ -103,7 +143,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-avax",
@@ -117,7 +165,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-avnt",
@@ -131,7 +187,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-bch",
@@ -145,7 +209,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-bnb",
@@ -159,7 +231,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-btc",
@@ -173,7 +253,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-dash",
@@ -187,7 +275,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-doge",
@@ -201,7 +297,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-dot",
@@ -215,7 +319,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-eth",
@@ -229,7 +341,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-fet",
@@ -243,7 +363,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-ftm",
@@ -257,7 +385,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-hbar",
@@ -271,7 +407,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-hype",
@@ -285,7 +429,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-icp",
@@ -299,7 +451,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-iota",
@@ -313,7 +473,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-link",
@@ -327,7 +495,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-ltc",
@@ -341,7 +517,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-mkr",
@@ -355,7 +539,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-near",
@@ -369,7 +561,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-neo",
@@ -383,7 +583,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-ondo",
@@ -397,7 +605,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-pengu",
@@ -411,7 +627,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-pol",
@@ -425,7 +649,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-pump",
@@ -439,7 +671,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-render",
@@ -453,7 +693,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-sol",
@@ -467,7 +715,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-sui",
@@ -481,7 +737,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-trx",
@@ -495,7 +759,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-uni",
@@ -509,7 +781,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-xlm",
@@ -523,7 +803,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-xrp",
@@ -537,7 +825,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     },
     {
       "id": "hl-xs-zec",
@@ -551,7 +847,15 @@
       "leverage": 1,
       "margin_mode": "cross",
       "max_drawdown_pct": 50,
-      "allowed_regimes": []
+      "allowed_regimes": [],
+      "close_strategies": [
+        {
+          "name": "tp_at_pct",
+          "params": {
+            "pct": 100000
+          }
+        }
+      ]
     }
   ]
 }

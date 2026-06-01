@@ -290,7 +290,9 @@ def main():
             cmd = ["manual-open", sid, "--side", side, "--size", f"{size:.6f}",
                    "--record-only", "--fill-price", f"{price}"]
         else:   # live/testnet: size from engine price (Go's --notional mark fetch is unreliable)
-            cmd = ["manual-open", sid, "--side", side, "--size", f"{size:.6f}"]
+            # --no-protection: no per-position SL/TP. Exits are managed at the
+            # portfolio level (4h monitor: regime flatten + momentum exit-decay).
+            cmd = ["manual-open", sid, "--side", side, "--size", f"{size:.6f}", "--no-protection"]
         print(f"  {sid:14s} ({side:5s}) ${notion:>10,.0f}  [{why}]")
         run_cmd(cmd, a.execute, a.gotrader)
     if holds:
