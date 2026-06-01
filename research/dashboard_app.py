@@ -35,6 +35,14 @@ _load_env()
 LEDGER = "research/results/live_ledger.csv"
 EVENTS = "research/results/rebalance_events.csv"
 BASELINE = "research/results/baseline.json"
+PAPER = "research/results/paper_live.csv"
+# (config key, legend label, distinct color) — order = legend order; 3w is the winner
+PAPER_META = [
+    ("biweekly_3w", "biweekly / 3w  (HL winner)", "#3fb950"),
+    ("weekly_1w",   "weekly / 1w",                "#f85149"),
+    ("weekly_2w",   "weekly / 2w",                "#d29922"),
+    ("biweekly_4w", "biweekly / 4w",              "#a371f7"),
+]
 CONTAINER = "go-trader-paper"
 DOCKER = os.environ.get("DOCKER_BIN", "/usr/local/bin/docker")   # launchd has minimal PATH
 TESTNET = os.environ.get("HYPERLIQUID_TESTNET", "") == "1"
@@ -161,6 +169,32 @@ def _read(path):
     return list(csv.DictReader(open(path))) if os.path.exists(path) else []
 
 
+def paper_curves():
+    """Per-config paper equity from paper_live.csv -> (labels, Chart.js datasets, standings).
+    Equity shown as % return; each config a distinct color, the 3w winner thickest."""
+    rows = _read(PAPER)
+    if not rows:
+        return None
+    times = sorted({r["time"] for r in rows})
+    labels = [t[:16].replace("T", " ") for t in times]
+    by = {}
+    for r in rows:
+        by.setdefault(r["config"], {})[r["time"]] = float(r["equity"])
+    datasets, standings = [], []
+    for cfg, label, color in PAPER_META:
+        s = by.get(cfg)
+        if not s:
+            continue
+        data = [round((s[t] - 1) * 100, 3) if t in s else None for t in times]
+        datasets.append({"label": label, "data": data, "borderColor": color,
+                         "backgroundColor": "rgba(0,0,0,0)", "fill": False, "tension": 0.2,
+                         "borderWidth": 3 if cfg == "biweekly_3w" else 1.8,
+                         "pointRadius": 0, "spanGaps": True})
+        last = data[-1] if data and data[-1] is not None else 0.0
+        standings.append((label, color, last))
+    return labels, datasets, standings
+
+
 def render():
     rows, equity, pnl, gross = snapshot()
     led = _read(LEDGER); evs = _read(EVENTS)
@@ -182,6 +216,26 @@ def render():
         f"<td>{p['entry']:.4g}</td><td>{p['cur']:.4g}</td>"
         f"<td class={'pos' if p['pnl']>=0 else 'neg'}>${p['pnl']:+,.0f}</td></tr>"
         for p in sorted(rows, key=lambda x: (x["side"], -x["notional"])))
+
+    # paper-shadow race (the 4 configs running in parallel on live HL prices)
+    pc = paper_curves()
+    paper_block = paper_script = ""
+    if pc:
+        plabels, pdata, pstand = pc
+        chips = "".join(
+            f"<span style='color:{c};font-weight:600;margin-right:16px'>● {lab.split('  ')[0]} "
+            f"<b>{v:+.2f}%</b></span>" for lab, c, v in sorted(pstand, key=lambda x: -x[2]))
+        paper_block = (
+            "<h2>Paper-shadow race — 4 configs on live HL prices (paper, no orders)</h2>"
+            f"<div style='margin:0 0 8px;font-size:13px'>{chips}</div>"
+            "<canvas id=paper height=80></canvas>")
+        paper_script = (
+            "new Chart(document.getElementById('paper'),{type:'line',"
+            f"data:{{labels:{json.dumps(plabels)},datasets:{json.dumps(pdata)}}},"
+            "options:{interaction:{mode:'index',intersect:false},"
+            "plugins:{legend:{display:true,position:'top',labels:{color:'#c9d1d9',boxWidth:12,usePointStyle:true}}},"
+            "scales:{x:{ticks:{color:'#8b949e',maxTicksLimit:8},grid:{color:'#21262d'}},"
+            "y:{ticks:{color:'#8b949e',callback:function(v){return v+'%'}},grid:{color:'#21262d'}}}}});")
     return f"""<!doctype html><html><head><meta charset=utf-8><meta http-equiv=refresh content=60>
 <title>XS-Momentum Paper</title><script src=https://cdn.jsdelivr.net/npm/chart.js></script>
 <style>body{{font-family:-apple-system,Segoe UI,sans-serif;background:#0d1117;color:#c9d1d9;margin:0;padding:26px}}
@@ -204,13 +258,15 @@ canvas{{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:1
 <h2>Equity curve — orange dots = rebalances</h2><canvas id=eq height=78></canvas>
 <h2>Positions (live mark)</h2>
 <table><tr><th>coin</th><th>side</th><th>notional</th><th>entry</th><th>current</th><th>P&amp;L</th></tr>{prows}</table>
+{paper_block}
 <p style="color:#8b949e;font-size:12px;margin-top:14px">auto-refreshes 60s · {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC · {'live HL testnet account' if TESTNET else f'base AUM $' + format(AUM, ',.0f')}</p>
 <script>new Chart(document.getElementById('eq'),{{type:'line',
 data:{{labels:{json.dumps(times)},datasets:[{{data:{json.dumps(eq)},borderColor:'#58a6ff',
 backgroundColor:'rgba(88,166,255,.08)',fill:true,tension:.2,borderWidth:2,
 pointRadius:{json.dumps(radius)},pointBackgroundColor:{json.dumps(pcolor)},pointBorderColor:{json.dumps(pcolor)}}}]}},
 options:{{plugins:{{legend:{{display:false}}}},scales:{{x:{{ticks:{{color:'#8b949e',maxTicksLimit:8}},grid:{{color:'#21262d'}}}},
-y:{{ticks:{{color:'#8b949e'}},grid:{{color:'#21262d'}}}}}}}}}});</script></body></html>"""
+y:{{ticks:{{color:'#8b949e'}},grid:{{color:'#21262d'}}}}}}}}}});
+{paper_script}</script></body></html>"""
 
 
 class H(BaseHTTPRequestHandler):

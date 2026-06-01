@@ -5,13 +5,14 @@ encoding the locked, validated config. Run directly to print today's book;
 imported by orchestrator.py to drive go-trader manual positions.
 
 Locked config (from research):
-  universe = top-N HL-liquid perps     lookback = 1 week (momentum)
+  universe = top-N HL-liquid perps     lookback = 3 weeks (momentum)
   legs     = top/bottom 20%            weighting = inverse-vol, per-name cap 25%
   sizing   = vol-target 15% (live: from running track record; cold start lev=1)
   gate     = weak-bear: if BTC composite == trending_down_choppy -> FLAT the book
-  cadence  = weekly  (deploy_compare.py: 1w/weekly beats 4w/biweekly+monitor net of
-             cost; the weekly re-rank makes the intra-cycle exit-decay monitor
-             redundant, so the monitor is unscheduled — code retained in orchestrator)
+  cadence  = biweekly  (hl_validate.py: on the REAL HL universe + real funding,
+             biweekly/3w is the only robust config — +101%/2.3y, Sharpe 1.08,
+             maxDD -16%; weekly/1w was a BinanceUS-top-25 artifact (~0 on HL).
+             monitor stays unscheduled — it hurt the 3w book. code in orchestrator.)
 Signals are fetched LIVE from Hyperliquid (the venue we trade) -- same prices we
 execute against, no proxy. Universe stays crypto-only (BinanceUS-derived list
 intersected with HL; excludes HL's tokenized equities).
@@ -45,7 +46,7 @@ def _testnet_universe():
                               "vol": float(ctx.get("dayNtlVlm", 0) or 0)}
     return out
 
-TF = "4h"; BARS_DAY = 6; LB = 1 * 7 * BARS_DAY   # 1-week momentum, weekly rebalance (deploy_compare.py)
+TF = "4h"; BARS_DAY = 6; LB = 3 * 7 * BARS_DAY   # 3-week momentum, biweekly rebalance (hl_validate.py)
 QFRAC = 0.20; NLIQ = 40; NAME_CAP = 0.25; REGIME_PERIOD = 90
 
 
