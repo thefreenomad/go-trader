@@ -20,4 +20,11 @@ local/
 # macOS
 .DS_Store
 architecture.md
+# runtime artifacts (paper/testnet book state, ledgers, container data)
 research/results/xs_positions.json
+research/results/xs_attempts.json
+research/results/baseline.json
+research/results/live_ledger.csv
+research/results/rebalance_events.csv
+research/results/dashboard.log
+docker-data/

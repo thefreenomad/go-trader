@@ -13,18 +13,66 @@ Also: --emit-config writes the type:"manual" slot fragment for scheduler/config.
 
 Safe by default: prints the plan; only touches go-trader with --execute.
 """
-import sys, os, json, argparse, subprocess
+import sys, os, json, argparse, subprocess, time, fcntl
 sys.path.insert(0, "research")
 from select_engine import compute_target
 
 STATE = "research/results/xs_positions.json"     # what we currently hold (per-coin side+notional)
 RESIZE_TOL = 0.25                                  # re-open only if notional drifts > 25%
+ATTEMPTS = "research/results/xs_attempts.json"   # per-coin last on-chain action ts (idempotency)
+SETTLE_GRACE_S = 600                              # suppress re-acting on a coin for 10 min (settlement lag)
+LOCK = "/tmp/xs_orchestrator.lock"               # process lock: never two rebalances at once
 
 
 def load_state(path):
     if os.path.exists(path):
         return json.load(open(path))
     return {}
+
+
+def load_attempts(path):
+    if os.path.exists(path):
+        try:
+            return json.load(open(path))
+        except Exception:
+            return {}
+    return {}
+
+
+def save_attempts(path, d):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    json.dump(d, open(path, "w"), indent=2)
+
+
+def filter_settling(closes, opens, attempts, now, grace):
+    """Idempotency guard: drop every action on a coin acted on within ``grace``.
+
+    HL's clearinghouseState lags freshly-placed fills, so a rebalance that
+    re-runs inside the settlement window reads stale account state and would
+    re-open coins that already filled — doubling the position. We suppress all
+    actions (close+open, so a resize isn't half-applied) on any coin touched in
+    the last ``grace`` seconds; genuinely-unfilled coins retry once the window
+    passes. Returns (closes, opens, suppressed_coins)."""
+    suppress = {c for c, ts in attempts.items() if (now - ts) < grace}
+    if not suppress:
+        return closes, opens, []
+    acted = {c[0] for c in closes} | {o[0] for o in opens}
+    fc = [c for c in closes if c[0] not in suppress]
+    fo = [o for o in opens if o[0] not in suppress]
+    return fc, fo, sorted(suppress & acted)
+
+
+def acquire_lock(path):
+    """Non-blocking exclusive lock so two rebalances never run concurrently (a
+    manual run colliding with the cron, or a double-fire). Returns the held file
+    handle (keep it alive for the process lifetime) or None if already locked."""
+    f = open(path, "w")
+    try:
+        fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        f.close()
+        return None
+    return f
 
 
 def live_positions():
@@ -104,6 +152,12 @@ def main():
     if a.emit_config:
         emit_config(); return
 
+    lock = None
+    if a.execute:                       # hold an exclusive lock for the whole live run
+        lock = acquire_lock(LOCK)
+        if lock is None:
+            print("another rebalance is in progress (lock held) — exiting"); return
+
     r = compute_target(a.aum, a.lev)
     if a.paper:
         current = load_state(STATE)
@@ -115,12 +169,22 @@ def main():
             current = load_state(STATE)
     closes, opens, holds = diff(current, r["target"], r["gated"])
 
+    # Idempotency: suppress actions on coins touched within the settlement window
+    # so a too-soon re-run can't double a position the account hasn't surfaced yet.
+    suppressed = []
+    if a.execute and not a.paper:
+        closes, opens, suppressed = filter_settling(
+            closes, opens, load_attempts(ATTEMPTS), time.time(), SETTLE_GRACE_S)
+
     print(f"=== ORCHESTRATOR  (as of {r['asof']}, AUM ${a.aum:,.0f}, "
           f"{'EXECUTE' if a.execute else 'DRY-RUN'}) ===")
     print(f"BTC regime {r['regime']}"
           f"{'  -> WEAK BEAR: FLATTEN BOOK' if r['gated'] else ''}")
     print(f"current {len(current)} positions | target {len(r['target'])} | "
           f"close {len(closes)} / open {len(opens)} / hold {len(holds)}\n")
+    if suppressed:
+        print(f"settling (skipped, acted <{SETTLE_GRACE_S // 60}m ago): "
+              f"{', '.join(suppressed)}\n")
 
     if not closes and not opens:
         print("No changes needed (book already matches target).")
@@ -147,6 +211,12 @@ def main():
         os.makedirs(os.path.dirname(STATE), exist_ok=True)
         json.dump(new_state, open(STATE, "w"), indent=2)
         print(f"\nstate persisted -> {STATE}")
+        # stamp coins we just acted on so the next run inside the window skips them
+        now = time.time()
+        attempts = {c: ts for c, ts in load_attempts(ATTEMPTS).items() if (now - ts) < SETTLE_GRACE_S}
+        for coin in ({c[0] for c in closes} | {o[0] for o in opens}):
+            attempts[coin] = now
+        save_attempts(ATTEMPTS, attempts)
         # log a rebalance event (dashboard marks these on the equity curve)
         import csv as _csv
         from datetime import datetime as _dt, timezone as _tz
